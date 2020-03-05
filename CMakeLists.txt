@@ -14,6 +14,12 @@ INCLUDE_DIRECTORIES(${EMP-OT_INCLUDE_DIRS})
 install(DIRECTORY emp-ag2pc DESTINATION include)
 install(DIRECTORY cmake/ DESTINATION cmake)
 
+add_library(tokenm-utils SHARED tokens/tokens.cpp tokens/translation.cpp)
+target_link_libraries(tokenm-utils ${EMP-OT_LIBRARIES})
+
+install(TARGETS tokenm-utils DESTINATION lib)
+install(FILES tokens/tokens.h DESTINATION include/emp-ag2pc)
+
 # Test cases
 macro (add_test _name)
 	add_test_with_lib(${_name} ${EMP-OT_LIBRARIES})
@@ -21,8 +27,10 @@ endmacro()
 
 add_test(aes)
 add_test(sha1)
-add_test(sha256)
+#add_test(sha256)
 add_test (simple_circuit)
 #add_test (abit)
 #add_test (amortized_2pc)
+
+add_test(tokens-main)
 
