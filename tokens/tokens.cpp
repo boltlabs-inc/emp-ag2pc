@@ -98,6 +98,19 @@ void run(int party, NetIO* io, string name,
     	pos = translate_bitcoinPubKey(cust_escrow_pub_key_l, in, pos);
     	pos = translate_bitcoinPubKey(cust_payout_pub_key_l, in, pos);
     	pos = translate_commitmentRandomness(revlock_commitment_randomness_l, in, pos);
+
+    	/*PUBLIC*/
+    	pos = translate_balance(epsilon_l, in, pos);
+        pos = translate_hmacKeyCom(hmac_key_commitment_l, in, pos);
+        pos = translate_maskCom(paytoken_mask_commitment_l, in, pos);
+        pos = translate_revLockCom(rlc_l, in, pos);
+        pos = translate_nonce(nonce_l, in, pos);
+        pos = translate_bitcoinPubKey(merch_escrow_pub_key_l, in, pos);
+        pos = translate_bitcoinPubKey(merch_dispute_key_l, in, pos);
+        pos = translate_bitcoinPubKey(merch_payout_pub_key_l, in, pos);
+        pos = translate_pubKeyHash(merch_publickey_hash_l, in, pos);
+        cout << "Position cust: " << pos << endl;
+
 	}
 
 	if (party == MERCH) {
@@ -107,20 +120,10 @@ void run(int party, NetIO* io, string name,
         pos = translate_mask(escrow_mask_l, in, pos);
         pos = translate_commitmentRandomness(hmac_commitment_randomness_l, in, pos);
         pos = translate_commitmentRandomness(paytoken_mask_commitment_randomness_l, in, pos);
+        pos = translate_ecdsaPartialSig(sig1, in, pos);
+        pos = translate_ecdsaPartialSig(sig2, in, pos);
+        cout << "Position merch: " << pos << endl;
     }
-
-    pos = translate_balance(epsilon_l, in, pos);
-    pos = translate_hmacKeyCom(hmac_key_commitment_l, in, pos);
-    pos = translate_maskCom(paytoken_mask_commitment_l, in, pos);
-    pos = translate_revLockCom(rlc_l, in, pos);
-    pos = translate_nonce(nonce_l, in, pos);
-    pos = translate_bitcoinPubKey(merch_escrow_pub_key_l, in, pos);
-    pos = translate_bitcoinPubKey(merch_dispute_key_l, in, pos);
-    pos = translate_bitcoinPubKey(merch_payout_pub_key_l, in, pos);
-    pos = translate_pubKeyHash(merch_publickey_hash_l, in, pos);
-    pos = translate_ecdsaPartialSig(sig1, in, pos);
-    pos = translate_ecdsaPartialSig(sig2, in, pos);
-    cout << "Position: " << pos << endl;
 
 	memset(out, false, cf.n3);
 
