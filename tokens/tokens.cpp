@@ -86,10 +86,11 @@ void run(int party, NetIO* io, string name,
 	cout << "dep:\t"<<party<<"\t"<<time_from(t1)<<endl;
 
     // create and fill in input vectors (to all zeros with memset)
-	bool *in = new bool[max(cf.n1, cf.n2)];
+    int in_length = party==MERCH?cf.n1:cf.n2;
+	bool *in = new bool[in_length];
 	cout << "input size: max " << cf.n1 << "\t" << cf.n2<<endl;
 	bool * out = new bool[cf.n3];
-	memset(in, false, max(cf.n1, cf.n2));
+	memset(in, false, in_length);
 	int pos = 0;
 	if (party == CUST) {
 	    pos = translate_state(old_state_l, in, pos);
@@ -138,28 +139,28 @@ void run(int party, NetIO* io, string name,
 		for(int i = 0; i < cf.n3; ++i)
 			res += (out[i]?"1":"0");
 		cout << "result: " << res << endl;
-        for (int i = 0; i < 256; i++) {
-            bool tmp[8];
-            int start = i*32;
-            int end = (i+1)*32;
-            memcpy(tmp, &out[start], end);
-            pt_return->paytoken[i] = bool_to_int<uint32_t>(tmp, 4);
-        }
-
-        for (int i = 256; i < 512; i++) {
-            bool tmp[8];
-            int start = i*32;
-            int end = (i+1)*32;
-            memcpy(tmp, &out[start], end);
-            ct_escrow->sig[i] = bool_to_int<uint32_t>(tmp, 4);
-        }
-        for (int i = 512; i < 768; i++) {
-            bool tmp[8];
-            int start = i*32;
-            int end = (i+1)*32;
-            memcpy(tmp, &out[start], end);
-            ct_merch->sig[i] = bool_to_int<uint32_t>(tmp, 4);
-        }
+//        for (int i = 0; i < 256; i++) {
+//            bool tmp[8];
+//            int start = i*32;
+//            int end = (i+1)*32;
+//            memcpy(tmp, &out[start], end);
+//            pt_return->paytoken[i] = bool_to_int<uint32_t>(tmp, 4);
+//        }
+//
+//        for (int i = 256; i < 512; i++) {
+//            bool tmp[8];
+//            int start = i*32;
+//            int end = (i+1)*32;
+//            memcpy(tmp, &out[start], end);
+//            ct_escrow->sig[i] = bool_to_int<uint32_t>(tmp, 4);
+//        }
+//        for (int i = 512; i < 768; i++) {
+//            bool tmp[8];
+//            int start = i*32;
+//            int end = (i+1)*32;
+//            memcpy(tmp, &out[start], end);
+//            ct_merch->sig[i] = bool_to_int<uint32_t>(tmp, 4);
+//        }
 	}
 	delete[] in;
 	delete[] out;
@@ -173,7 +174,7 @@ void run(int party, NetIO* io, string name,
  * Assumes close_tx_escrow and close_tx_merch are padded to 
  * exactly 1024 bits according to the SHA256 spec.
  */
-void build_masked_tokens_cust_m(IOCallback io_callback,
+void build_masked_tokens_cust(IOCallback io_callback,
   struct Conn_l conn,
   struct Balance_l epsilon_l,
   struct RevLockCommitment_l rlc_l, // TYPISSUE: this doesn't match the docs. should be a commitment
@@ -273,7 +274,7 @@ void build_masked_tokens_cust_m(IOCallback io_callback,
   if (io2 != nullptr) delete io2;
 }
 
-void build_masked_tokens_merch_m(IOCallback io_callback,
+void build_masked_tokens_merch(IOCallback io_callback,
   struct Conn_l conn,
   struct Balance_l epsilon_l,
   struct RevLockCommitment_l rlc_l, // TYPISSUE: this doesn't match the docs. should be a commitment

@@ -212,7 +212,7 @@ struct State_l {
  * \param[out] ct_merch     : masked close token - spends from merchant close transaction (ECDSA signature) 
  *
  */
-void build_masked_tokens_cust_m(
+void build_masked_tokens_cust(
   IOCallback io_callback,
   struct Conn_l conn,
 
@@ -274,7 +274,7 @@ void build_masked_tokens_cust_m(
  * Merchant does not receive output.
  *
  */
-void build_masked_tokens_merch_m(
+void build_masked_tokens_merch(
   IOCallback io_callback,
   struct Conn_l conn,
   struct Balance_l epsilon_l,
