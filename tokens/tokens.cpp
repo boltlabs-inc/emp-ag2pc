@@ -86,9 +86,9 @@ void run(int party, NetIO* io, string name,
 	cout << "dep:\t"<<party<<"\t"<<time_from(t1)<<endl;
 
     // create and fill in input vectors (to all zeros with memset)
-    int in_length = party==MERCH?cf.n1:cf.n2;
+    int in_length = party==CUST?cf.n2:cf.n1;
 	bool *in = new bool[in_length];
-	cout << "input size: max " << cf.n1 << "\t" << cf.n2<<endl;
+	cout << "input size: MERCH " << cf.n1 << "\tCUST " << cf.n2<<endl;
 	bool * out = new bool[cf.n3];
 	memset(in, false, in_length);
 	int pos = 0;
@@ -110,6 +110,129 @@ void run(int party, NetIO* io, string name,
         pos = translate_bitcoinPubKey(merch_dispute_key_l, in, pos);
         pos = translate_bitcoinPubKey(merch_payout_pub_key_l, in, pos);
         pos = translate_pubKeyHash(merch_publickey_hash_l, in, pos);
+
+        int32_to_bool(&in[pos], 909522486, 32);
+        pos = pos + 32;
+        int32_to_bool(&in[pos], 2147483648, 32);
+        pos = pos + 32;
+        int32_to_bool(&in[pos], 2048, 32);
+        pos = pos + 32;
+        int32_to_bool(&in[pos], 1549556828, 32);
+        pos = pos + 32;
+        int32_to_bool(&in[pos], 768, 32);
+        pos = pos + 32;
+        int32_to_bool(&in[pos], 640, 32);
+        pos = pos + 32;
+        int32_to_bool(&in[pos], 4294967295, 32);
+        pos = pos + 224;
+        pos = pos + 32;
+        int32_to_bool(&in[pos], 256, 32);
+        pos = pos + 32;
+        int32_to_bool(&in[pos], 384, 32);
+        pos = pos + 32;
+        pos = translate_initSHA256(in, pos);
+        int32_to_bool(&in[pos],  1671962624 , 32);
+        pos = pos + 32;
+        int32_to_bool(&in[pos],  136 , 32);
+        pos = pos + 32;
+        int32_to_bool(&in[pos],  553648128, 32);
+        pos = pos + 32;
+        int32_to_bool(&in[pos],  26368, 32);
+        pos = pos + 32;
+        int32_to_bool(&in[pos], 2 , 32);
+        pos = pos + 32;
+        int32_to_bool(&in[pos],  3473211392 , 32);
+        pos = pos + 32;
+        int32_to_bool(&in[pos],  45685, 32);
+        pos = pos + 32;
+        int32_to_bool(&in[pos],  896, 32);
+        pos = pos + 32;
+        int32_to_bool(&in[pos],  26796, 32);
+        pos = pos + 32;
+        int32_to_bool(&in[pos],  570433536 , 32);
+        pos = pos + 32;
+        int32_to_bool(&in[pos],  22 , 32);
+        pos = pos + 32;
+        int32_to_bool(&in[pos],  1310720 , 32);
+        pos = pos + 32;
+        int32_to_bool(&in[pos],  17258, 32);
+        pos = pos + 32;
+        int32_to_bool(&in[pos],  1090519040, 32);
+        pos = pos + 32;
+        int32_to_bool(&in[pos], 32768 , 32);
+        pos = pos + 32;
+        int32_to_bool(&in[pos],  1200, 32);
+        pos = pos + 32;
+        int32_to_bool(&in[pos],  33554432 , 32);
+        pos = pos + 32;
+        int32_to_bool(&in[pos],  1001467945  , 32);
+        pos = pos + 32;
+        int32_to_bool(&in[pos],  3464175445 , 32);
+        pos = pos + 32;
+        int32_to_bool(&in[pos],  2666915655 , 32);
+        pos = pos + 32;
+        int32_to_bool(&in[pos],  4239147935 , 32);
+        pos = pos + 32;
+        int32_to_bool(&in[pos],   341156588 , 32);
+        pos = pos + 32;
+        int32_to_bool(&in[pos],  2086603191 , 32);
+        pos = pos + 32;
+        int32_to_bool(&in[pos],   579893598 , 32);
+        pos = pos + 32;
+        int32_to_bool(&in[pos],  1885753412  , 32);
+        pos = pos + 32;
+        int32_to_bool(&in[pos],  1196564736, 32);
+        pos = pos + 32;
+        int32_to_bool(&in[pos],  21166, 32);
+        pos = pos + 32;
+        int32_to_bool(&in[pos],  4294967295 , 32);
+        pos = pos + 32;
+        int32_to_bool(&in[pos],  16777216 , 32);
+        pos = pos + 32;
+        int32_to_bool(&in[pos],  1824, 32);
+        pos = pos + 32;
+        int32_to_bool(&in[pos],  1919111713 , 32);
+        pos = pos + 32;
+        int32_to_bool(&in[pos],  2162688 , 32);
+        pos = pos + 32;
+        int32_to_bool(&in[pos],  82, 32);
+        pos = pos + 32;
+        int32_to_bool(&in[pos],  2925986511 , 32);
+        pos = pos + 32;
+        int32_to_bool(&in[pos],    95581473 , 32);
+        pos = pos + 32;
+        int32_to_bool(&in[pos],  11298816, 32);
+        pos = pos + 32;
+        int32_to_bool(&in[pos],  255 , 32);
+        pos = pos + 32;
+        int32_to_bool(&in[pos],  4294967040 , 32);
+        pos = pos + 32;
+        int32_to_bool(&in[pos],  1 , 32);
+        pos = pos + 32;
+        int32_to_bool(&in[pos],  128 , 32);
+        pos = pos + 32;
+        int32_to_bool(&in[pos],  2168, 32);
+        pos = pos + 32;
+        int32_to_bool(&in[pos], 16711680, 32);
+        pos = pos + 32;
+        int32_to_bool(&in[pos], 65280, 32);
+        pos = pos + 32;
+        int32_to_bool(&in[pos], 32, 32);
+        pos = pos + 256;
+
+        string q2str = "57896044618658097711785492504343953926418782139537452191302581570759080747169";
+        string tmp = "";
+        char one = '1';
+        tmp = dec_to_bin(q2str);
+        for(int i = pos; i < pos+tmp.length(); ++i)
+            in[i] = (tmp[i-pos] == one);
+        pos = pos + 516;
+        string qstr = "115792089237316195423570985008687907852837564279074904382605163141518161494337";
+        tmp = "";
+        tmp = dec_to_bin(qstr);
+        for(int i = pos; i < pos+tmp.length(); ++i)
+            in[i] = (tmp[i-pos] == one);
+        pos = pos + 258;
         cout << "Position cust: " << pos << endl;
 
 	}
@@ -126,6 +249,11 @@ void run(int party, NetIO* io, string name,
         cout << "Position merch: " << pos << endl;
     }
 
+    string res = "";
+    for(int i = 0; i < in_length; ++i)
+			res += (in[i]?"1":"0");
+    cout << "in: " << res << endl;
+
 	memset(out, false, cf.n3);
 
     // online protocol execution
@@ -139,28 +267,18 @@ void run(int party, NetIO* io, string name,
 		for(int i = 0; i < cf.n3; ++i)
 			res += (out[i]?"1":"0");
 		cout << "result: " << res << endl;
-//        for (int i = 0; i < 256; i++) {
-//            bool tmp[8];
-//            int start = i*32;
-//            int end = (i+1)*32;
-//            memcpy(tmp, &out[start], end);
-//            pt_return->paytoken[i] = bool_to_int<uint32_t>(tmp, 4);
-//        }
-//
-//        for (int i = 256; i < 512; i++) {
-//            bool tmp[8];
-//            int start = i*32;
-//            int end = (i+1)*32;
-//            memcpy(tmp, &out[start], end);
-//            ct_escrow->sig[i] = bool_to_int<uint32_t>(tmp, 4);
-//        }
-//        for (int i = 512; i < 768; i++) {
-//            bool tmp[8];
-//            int start = i*32;
-//            int end = (i+1)*32;
-//            memcpy(tmp, &out[start], end);
-//            ct_merch->sig[i] = bool_to_int<uint32_t>(tmp, 4);
-//        }
+        for (int i = 0; i < 8; ++i) {
+            int start = i*32;
+            pt_return->paytoken[i] = bool_to_int<uint32_t>(&out[start], 32);
+        }
+        for (int i = 8; i < 16; ++i) {
+            int start = i*32;
+            ct_escrow->sig[i-8] = bool_to_int<uint32_t>(&out[start], 32);
+        }
+        for (int i = 16; i < 24; ++i) {
+            int start = i*32;
+            ct_merch->sig[i-16] = bool_to_int<uint32_t>(&out[start], 32);
+        }
 	}
 	delete[] in;
 	delete[] out;

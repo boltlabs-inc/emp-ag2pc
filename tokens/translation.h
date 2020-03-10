@@ -16,3 +16,4 @@ int translate_maskCom(MaskCommitment_l mask_com, bool *in, int pos);
 int translate_revLockCom(RevLockCommitment_l rev_lock_com, bool *in, int pos);
 int translate_pubKeyHash(PublicKeyHash_l pub_key_hash, bool *in, int pos);
 int translate_ecdsaPartialSig(EcdsaPartialSig_l par_sig, bool *in, int pos);
+int translate_initSHA256(bool *in, int pos);

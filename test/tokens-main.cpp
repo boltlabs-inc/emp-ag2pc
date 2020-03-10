@@ -3,10 +3,11 @@
 using namespace std;
 using namespace emp;
 
+
 //const string circuit_file_location = macro_xstr(EMP_CIRCUIT_PATH);
 void test(int party, NetIO* io, string name, string check_output = "") {
     // read in the circuit from the location where it was generated
-	string file = "/Users/Gijs/projects/libzkchannels/deps/root/include/" + name; //TODO: fix path
+	string file = "/Users/Gijs/projects/libzkchannels/deps/emp-sh2pc/" + name; //TODO: fix path
         cout << file << endl;
 	CircuitFile cf(file.c_str());
     //
@@ -29,15 +30,26 @@ void test(int party, NetIO* io, string name, string check_output = "") {
 	cout << "dep:\t"<<party<<"\t"<<time_from(t1)<<endl;
 
     // create and fill in input vectors (to all zeros with memset)
-	bool *in = new bool[max(cf.n1, cf.n2)];
+    int in_length = party==BOB?cf.n2:cf.n1;
+	bool *in = new bool[in_length];
 	cout << "input size: max " << cf.n1 << "\t" << cf.n2;
 	bool * out = new bool[cf.n3];
-	if (party == ALICE) {
-	    memset(in, false, max(cf.n1, cf.n2));
+	if (party == BOB) {
+	    memset(in, false, in_length);
+	    uint32_t in1 = 1;
+	    int32_to_bool(in, in1, 32);
 	} else {
-	    memset(in, false, max(cf.n1, cf.n2));
+	    uint32_t in2 = 2;
+	    int32_to_bool(in, in2, 32);
+	    uint32_t in3 = 5;
+	    int32_to_bool(&in[32], in3, 32);
 	}
 	memset(out, false, cf.n3);
+
+	string res = "";
+	for(int i = 0; i < 64; ++i)
+        res += (in[i]?"1":"0");
+    cout << "in: " << res << endl;
 
     // online protocol execution
 	t1 = clock_start();
@@ -65,7 +77,7 @@ int main(int argc, char** argv) {
 	cout << "start3" <<endl;
 	io->set_nodelay();
 	cout << "start4" <<endl;
-	test(party, io, "tokens.circuit.txt", string("c000"));
+	test(party, io, "test.circuit.txt", string("c000"));
 	delete io;
 	return 0;
 }
