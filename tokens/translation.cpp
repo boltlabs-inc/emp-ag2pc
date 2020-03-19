@@ -1,7 +1,7 @@
 #include "translation.h"
 #include <emp-tool/emp-tool.h>
 #include <string.h>
-#include "emp-sh2pc/sha256.h"
+#include "sha256.h"
 
 using namespace std;
 using namespace emp;

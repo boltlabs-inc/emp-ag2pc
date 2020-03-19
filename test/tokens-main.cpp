@@ -4,10 +4,10 @@ using namespace std;
 using namespace emp;
 
 
-//const string circuit_file_location = macro_xstr(EMP_CIRCUIT_PATH);
+const string circuit_file_location = macro_xstr(EMP_CIRCUIT_PATH);
 void test(int party, NetIO* io, string name, string check_output = "") {
     // read in the circuit from the location where it was generated
-	string file = "/Users/Gijs/projects/libzkchannels/deps/emp-sh2pc/" + name; //TODO: fix path
+	string file = circuit_file_location + name;
         cout << file << endl;
 	CircuitFile cf(file.c_str());
     //
