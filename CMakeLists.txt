@@ -13,12 +13,14 @@ INCLUDE_DIRECTORIES(${EMP-OT_INCLUDE_DIRS})
 
 install(DIRECTORY emp-ag2pc DESTINATION include)
 install(DIRECTORY cmake/ DESTINATION cmake)
+install(FILES tokens/tokens.h DESTINATION include/emp-sh2pc)
+install(FILES tokens/translation.h DESTINATION include/emp-sh2pc)
+install(FILES tokens/test-e2e.h DESTINATION include/emp-sh2pc)
 
-add_library(tokenm-utils SHARED tokens/tokens.cpp tokens/translation.cpp)
+add_library(tokenm-utils SHARED tokens/tokens.cpp tokens/translation.cpp tokens/test-e2e.cpp)
 target_link_libraries(tokenm-utils ${EMP-OT_LIBRARIES})
 
 install(TARGETS tokenm-utils DESTINATION lib)
-install(FILES tokens/tokens.h DESTINATION include/emp-ag2pc)
 
 # Test cases
 macro (add_test _name)

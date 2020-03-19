@@ -28,6 +28,7 @@ void* get_gonetio_ptr(void *raw_stream_fd, int party) {
     return static_cast<void *>(io_ptr);
 }
 
+const string circuit_file_location = macro_xstr(EMP_CIRCUIT_PATH);
 void run(int party, NetIO* io, string name,
 /* CUSTOMER INPUTS */
   State_l old_state_l,
@@ -46,7 +47,6 @@ void run(int party, NetIO* io, string name,
   CommitmentRandomness_l hmac_commitment_randomness_l,
   CommitmentRandomness_l paytoken_mask_commitment_randomness_l,
 
-/* TODO: ECDSA Key info */
 /* PUBLIC INPUTS */
   Balance_l epsilon_l,
   HMACKeyCommitment_l hmac_key_commitment_l,
@@ -63,7 +63,7 @@ void run(int party, NetIO* io, string name,
   EcdsaSig_l* ct_merch) {
 
     // read in the circuit from the location where it was generated
-	string file = "/Users/Gijs/projects/libzkchannels/deps/root/include/" + name; //TODO: fix path
+	string file = circuit_file_location + name;
         cout << file << endl;
 	CircuitFile cf(file.c_str());
     //
