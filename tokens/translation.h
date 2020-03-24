@@ -1,6 +1,8 @@
 #pragma once
 #include "tokens.h"
 
+int translate_general(uint32_t*input, int len, bool*in, int pos);
+
 int translate_state(State_l state, bool *in, int pos);
 int translate_nonce(Nonce_l nonce, bool *in, int pos);
 int translate_rev_lock(RevLock_l revlock, bool *in, int pos);
@@ -17,3 +19,4 @@ int translate_revLockCom(RevLockCommitment_l rev_lock_com, bool *in, int pos);
 int translate_pubKeyHash(PublicKeyHash_l pub_key_hash, bool *in, int pos);
 int translate_ecdsaPartialSig(EcdsaPartialSig_l par_sig, bool *in, int pos);
 int translate_initSHA256(bool *in, int pos);
+int translate_constants(bool *in, int pos);

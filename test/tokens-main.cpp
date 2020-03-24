@@ -1,8 +1,20 @@
 #include <emp-tool/emp-tool.h>
 #include "emp-ag2pc/emp-ag2pc.h"
+#include "emp-ag2pc/sha256.h"
 using namespace std;
 using namespace emp;
 
+int translate_initSHA256(bool *in, int pos) {
+    for(int i=0; i<64; i++) {
+      int32_to_bool(&in[pos], k_clear[i], 32);
+      pos = pos + 32;
+    }
+    for(int i=0; i<8; i++) {
+      int32_to_bool(&in[pos], IV_clear[i], 32);
+      pos = pos + 32;
+    }
+    return pos;
+}
 
 const string circuit_file_location = macro_xstr(EMP_CIRCUIT_PATH);
 void test(int party, NetIO* io, string name, string check_output = "") {
@@ -32,22 +44,17 @@ void test(int party, NetIO* io, string name, string check_output = "") {
     // create and fill in input vectors (to all zeros with memset)
     int in_length = party==BOB?cf.n2:cf.n1;
 	bool *in = new bool[in_length];
-	cout << "input size: max " << cf.n1 << "\t" << cf.n2;
+    memset(in, false, in_length);
+    cout << "input size: max " << cf.n1 << "\t" << cf.n2 <<endl;
 	bool * out = new bool[cf.n3];
-	if (party == BOB) {
-	    memset(in, false, in_length);
-	    uint32_t in1 = 1;
-	    int32_to_bool(in, in1, 32);
-	} else {
-	    uint32_t in2 = 2;
-	    int32_to_bool(in, in2, 32);
-	    uint32_t in3 = 5;
-	    int32_to_bool(&in[32], in3, 32);
+//	int pos = 0;
+	if (party == ALICE) {
+        memset(in, true, in_length);
 	}
 	memset(out, false, cf.n3);
 
 	string res = "";
-	for(int i = 0; i < 64; ++i)
+	for(int i = 0; i < in_length; ++i)
         res += (in[i]?"1":"0");
     cout << "in: " << res << endl;
 
@@ -73,11 +80,11 @@ int main(int argc, char** argv) {
 	cout << "start1" <<endl;
 	int party, port;
 	parse_party_and_port(argv, &party, &port);
-    NetIO* io = new NetIO(party==BOB ? nullptr:IP, port);
+    NetIO* io = new NetIO(party==ALICE ? nullptr:IP, port);
 	cout << "start3" <<endl;
 	io->set_nodelay();
 	cout << "start4" <<endl;
-	test(party, io, "test.circuit.txt", string("c000"));
+	test(party, io, "test.circuit.txt", string("00000000"));
 	delete io;
 	return 0;
 }

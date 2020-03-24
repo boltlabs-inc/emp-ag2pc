@@ -45,7 +45,9 @@ void test_ecdsa_e2e(EcdsaPartialSig_l psl, char *hashedmsg, uint32_t party, uint
 	int pos = 0;
 	if (party == ALICE) {
 	    pos = translate_ecdsaPartialSig(psl, in, pos);
-	    string tmp = hex_to_binary(string(hashedmsg));
+	    string hmsg = change_base(string(hashedmsg), 16, 10);
+	    string tmp = dec_to_bin(hmsg);
+        std::reverse(tmp.begin(), tmp.end());
         for(int i = pos; i < pos+tmp.length(); ++i)
             in[i] = (tmp[i-pos] == one);
         pos = pos + tmp.length();
@@ -56,14 +58,16 @@ void test_ecdsa_e2e(EcdsaPartialSig_l psl, char *hashedmsg, uint32_t party, uint
         string q2str = "57896044618658097711785492504343953926418782139537452191302581570759080747169";
         tmp = "";
         tmp = dec_to_bin(q2str);
-        for(int i = pos; i < pos+tmp.length(); ++i)
-            in[i] = (tmp[i-pos] == one);
+        std::reverse(tmp.begin(), tmp.end());
+        for(int i = 0; i < tmp.length(); ++i)
+            in[i + pos] = (tmp[i] == one);
         pos = pos + 516;
         string qstr = "115792089237316195423570985008687907852837564279074904382605163141518161494337";
         tmp = "";
         tmp = dec_to_bin(qstr);
-        for(int i = pos; i < pos+tmp.length(); ++i)
-            in[i] = (tmp[i-pos] == one);
+        std::reverse(tmp.begin(), tmp.end());
+        for(int i = 0; i < tmp.length(); ++i)
+            in[i+pos] = (tmp[i] == one);
         pos = pos + 258;
         cout << "Position merch: " << pos << endl;
 
@@ -87,6 +91,10 @@ void test_ecdsa_e2e(EcdsaPartialSig_l psl, char *hashedmsg, uint32_t party, uint
 		for(int i = 0; i < cf.n3; ++i)
 			res += (out[i]?"1":"0");
 		cout << "result: " << res << endl;
+		for (int i = 0; i < 8; ++i) {
+            int start = i*32;
+            digest[i] = bool_to_int<uint32_t>(&out[start], 32);
+        }
 	}
 	delete[] in;
 	delete[] out;
