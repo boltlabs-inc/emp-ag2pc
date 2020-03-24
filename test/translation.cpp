@@ -1,4 +1,4 @@
-#include "emp-ag2pc/translation.h"
+#include "tokens/translation.h"
 #include "emp-tool/utils/utils.h"
 #include <iostream>
 

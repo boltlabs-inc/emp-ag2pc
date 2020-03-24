@@ -1,6 +1,6 @@
 #include <emp-tool/emp-tool.h>
 #include "emp-ag2pc/emp-ag2pc.h"
-#include "emp-ag2pc/sha256.h"
+#include "tokens/sha256.h"
 using namespace std;
 using namespace emp;
 
