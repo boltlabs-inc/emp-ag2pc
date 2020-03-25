@@ -124,7 +124,6 @@ int translate_constants(bool *in, int pos) {
     pos = pos + 32;
     int32_to_bool(&in[pos], 384, 32);
     pos = pos + 32;
-    pos = translate_initSHA256(in, pos);
     int32_to_bool(&in[pos],  1671962624 , 32);
     pos = pos + 32;
     int32_to_bool(&in[pos],  136 , 32);
@@ -213,6 +212,10 @@ int translate_constants(bool *in, int pos) {
     pos = pos + 32;
     int32_to_bool(&in[pos], 32, 32);
     pos = pos + 256;
+    int32_to_bool(&in[pos], 0, 32);
+    pos = pos + 32;
+
+    pos = translate_initSHA256(in, pos);
 
     string q2str = "57896044618658097711785492504343953926418782139537452191302581570759080747169";
     string tmp = "";
