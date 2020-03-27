@@ -62,36 +62,54 @@ void run(int party, NetIO* io, string name,
   EcdsaSig_l* ct_escrow,
   EcdsaSig_l* ct_merch) {
 
-    // read in the circuit from the location where it was generated
-	string file = circuit_file_location + name;
-        cout << file << endl;
-	CircuitFile cf(file.c_str());
-    //
-    // initialize some timing stuff?
-	auto t1 = clock_start();
-	C2PC twopc(io, party, &cf);
-	io->flush();
-	cout << "one time:\t"<<party<<"\t" <<time_from(t1)<<endl;
+  // read in the circuit from the location where it was generated
+  string file = circuit_file_location + name;
+  CircuitFile cf(file.c_str());
 
-    // preprocessing?
-	t1 = clock_start();
-	twopc.function_independent();
-	io->flush();
-	cout << "inde:\t"<<party<<"\t"<<time_from(t1)<<endl;
+#if defined(DEBUG)
+  cout << file << endl;
+#endif
 
-    // more preprocessing?
+#if defined(DEBUG)
+  //
+  // initialize some timing stuff?
+  auto t1 = clock_start();
+#endif
+  C2PC twopc(io, party, &cf);
+  io->flush();
+#if defined(DEBUG)
+  cout << "one time:\t"<<party<<"\tmicroseconds: " <<time_from(t1)<<endl;
+#endif
+
+#if defined(DEBUG)
+  // preprocessing?
+  t1 = clock_start();
+#endif  
+  twopc.function_independent();
+  io->flush();
+#if defined(DEBUG)
+  cout << "inde:\t"<<party<<"\tmicroseconds: "<<time_from(t1)<<endl;
+#endif
+
+#if defined(DEBUG)
+  // more preprocessing?
 	t1 = clock_start();
+#endif  
 	twopc.function_dependent();
 	io->flush();
-	cout << "dep:\t"<<party<<"\t"<<time_from(t1)<<endl;
+#if defined(DEBUG)
+	cout << "dep:\t"<<party<<"\tmicroseconds: "<<time_from(t1)<<endl;
+#endif
 
-    // create and fill in input vectors (to all zeros with memset)
-    int in_length = party==CUST?cf.n2:cf.n1;
-	bool *in = new bool[in_length];
-	cout << "input size: MERCH " << cf.n1 << "\tCUST " << cf.n2<<endl;
-	bool * out = new bool[cf.n3];
-	memset(in, false, in_length);
-	int pos = 0;
+  // create and fill in input vectors (to all zeros with memset)
+  int in_length = party==CUST?cf.n2:cf.n1;
+  bool *in = new bool[in_length];
+#if defined(DEBUG)
+  cout << "input size: MERCH " << cf.n1 << "\tCUST " << cf.n2<<endl;
+#endif  
+  bool *out = new bool[cf.n3];
+  memset(in, false, in_length);
+  int pos = 0;
 	if (party == CUST) {
 	    pos = translate_state(old_state_l, in, pos);
     	pos = translate_state(new_state_l, in, pos);
@@ -112,8 +130,9 @@ void run(int party, NetIO* io, string name,
         pos = translate_pubKeyHash(merch_publickey_hash_l, in, pos);
 
         pos = translate_constants(in, pos);
+#if defined(DEBUG)
         cout << "Position cust: " << pos << endl;
-
+#endif
 	}
 
 	if (party == MERCH) {
@@ -138,39 +157,49 @@ void run(int party, NetIO* io, string name,
         pos = translate_pubKeyHash(merch_publickey_hash_l, in, pos);
 
         pos = translate_constants(in, pos);
+#if defined(DEBUG)
         cout << "Position merch: " << pos << endl;
-    }
+#endif        
+  }
 
-    string res = "";
-    for(int i = 0; i < in_length; ++i)
+#if defined(DEBUG)
+  string res = "";
+  for(int i = 0; i < in_length; ++i)
 			res += (in[i]?"1":"0");
-    cout << "in: " << res << endl;
+  cout << "in: " << res << endl;
+#endif
 
 	memset(out, false, cf.n3);
 
-    // online protocol execution
+  // online protocol execution
+#if defined(DEBUG)
 	t1 = clock_start();
+#endif  
 	twopc.online(in, out);
-	cout << "online:\t"<<party<<"\t"<<time_from(t1)<<endl;
+#if defined(DEBUG)
+	cout << "online:\t"<<party<<"\tmicroseconds: "<<time_from(t1)<<endl;
+#endif
 
     // compare result to our hardcoded expected result
-	if(party == CUST){
+	if(party == CUST)  {
+#if defined(DEBUG)
 		string res = "";
 		for(int i = 0; i < cf.n3; ++i)
 			res += (out[i]?"1":"0");
 		cout << "result: " << res << endl;
-        for (int i = 0; i < 8; ++i) {
-            int start = i*32;
-            pt_return->paytoken[i] = bool_to32(&out[start]);
-        }
-        for (int i = 8; i < 16; ++i) {
-            int start = i*32;
-            ct_escrow->sig[i-8] = bool_to32(&out[start]);
-        }
-        for (int i = 16; i < 24; ++i) {
-            int start = i*32;
-            ct_merch->sig[i-16] = bool_to32(&out[start]);
-        }
+#endif
+    for (int i = 0; i < 8; ++i) {
+        int start = i*32;
+        pt_return->paytoken[i] = bool_to32(&out[start]);
+    }
+    for (int i = 8; i < 16; ++i) {
+        int start = i*32;
+        ct_escrow->sig[i-8] = bool_to32(&out[start]);
+    }
+    for (int i = 16; i < 24; ++i) {
+        int start = i*32;
+        ct_merch->sig[i-16] = bool_to32(&out[start]);
+    }
 	}
 	delete[] in;
 	delete[] out;
@@ -243,6 +272,7 @@ void build_masked_tokens_cust(IOCallback io_callback,
   CommitmentRandomness_l hmac_commitment_randomness_l;
   CommitmentRandomness_l paytoken_mask_commitment_randomness_l;
 
+  // TODO: add a better way to get circuit path 
   run(CUST, io2, "tokens.circuit.txt",
 /* CUSTOMER INPUTS */
   w_old,
@@ -278,10 +308,13 @@ void build_masked_tokens_cust(IOCallback io_callback,
   ct_merch
   );
 
+#if defined(DEBUG)
   cout << "customer finished!" << endl;
+#endif
 
   if (io1 != nullptr) delete io1;
   if (io2 != nullptr) delete io2;
+  if (io3 != nullptr) delete io3;
 }
 
 void build_masked_tokens_merch(IOCallback io_callback,
@@ -377,7 +410,9 @@ void build_masked_tokens_merch(IOCallback io_callback,
   &ct_merch
   );
 
+#if defined(DEBUG)
   cout << "merchant finished!" << endl;
+#endif
 
   if (io1 != nullptr) delete io1;
   if (io2 != nullptr) delete io2;
