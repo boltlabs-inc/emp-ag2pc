@@ -20,14 +20,17 @@ enum ConnType { CUSTOM = 0, NETIO, UNIXNETIO, TORNETIO };
  */
 typedef void* (*IOCallback)(void* nc, int party);
 
-/* Returns a pointer to a NetIO ptr */
+/* Returns a pointer to a NetIO. Caller is responsible for freeing the memory */
 void* get_netio_ptr(char *address, int port, int party);
 
-/* Returns a pointer to a UnixNetIO ptr */
+/* Returns a pointer to a UnixNetIO. Caller is responsible for freeing the memory */
 void* get_unixnetio_ptr(char *socket_path, int party);
 
-/* Returns a pointer to a GoNetIO ptr */
+/* Returns a pointer to a GoNetIO. Caller is responsible for freeing the memory */
 void* get_gonetio_ptr(void *raw_stream_fd, int party);
+
+/* Returns a pointer to a CircitFile. Caller is responsible for freeing the memory */
+void* load_circuit_file(const char *path);
 
 /*
  * describes an API for calling MPC functions 
@@ -215,6 +218,7 @@ struct State_l {
 void build_masked_tokens_cust(
   IOCallback io_callback,
   struct Conn_l conn,
+  void *circuit_file,
 
   struct Balance_l epsilon_l,
   struct RevLockCommitment_l rlc_l, 
@@ -277,6 +281,8 @@ void build_masked_tokens_cust(
 void build_masked_tokens_merch(
   IOCallback io_callback,
   struct Conn_l conn,
+  void *circuit_file,
+
   struct Balance_l epsilon_l,
   struct RevLockCommitment_l rlc_l, 
   struct MaskCommitment_l paymask_com,

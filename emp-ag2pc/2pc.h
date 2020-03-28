@@ -38,7 +38,9 @@ class C2PC { public:
 			if (cf->gates[4*i+3] == AND_GATE)
 				++num_ands;
 		}
+#if defined(DEBUG)		
 		cout << cf->n1<<" "<<cf->n2<<" "<<cf->n3<<" "<<num_ands<<endl<<flush;
+#endif		
 		total_pre = cf->n1 + cf->n2 + num_ands;
 		fpre = new Fpre(io, party, num_ands);
 

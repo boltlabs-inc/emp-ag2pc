@@ -10,26 +10,32 @@ using namespace std;
 using namespace emp;
 
 void* get_netio_ptr(char *address, int port, int party) {
-    char *address_ptr = (party == MERCH) ? nullptr : address;
-    NetIO *io_ptr = new NetIO(address_ptr, port);
-    return static_cast<void *>(io_ptr);
+  char *address_ptr = (party == MERCH) ? nullptr : address;
+  NetIO *io_ptr = new NetIO(address_ptr, port);
+  return static_cast<void *>(io_ptr);
 }
 
 /* Returns a pointer to a UnixNetIO ptr */
 void* get_unixnetio_ptr(char *socket_path, int party) {
-    bool is_server = (party == MERCH) ? true : false;
-    UnixNetIO *io_ptr = new UnixNetIO(socket_path, is_server);
-    return static_cast<void *>(io_ptr);
+  bool is_server = (party == MERCH) ? true : false;
+  UnixNetIO *io_ptr = new UnixNetIO(socket_path, is_server);
+  return static_cast<void *>(io_ptr);
 }
 
 void* get_gonetio_ptr(void *raw_stream_fd, int party) {
-    bool is_server = (party == MERCH) ? true : false;
-    GoNetIO *io_ptr = new GoNetIO(raw_stream_fd, is_server);
-    return static_cast<void *>(io_ptr);
+  bool is_server = (party == MERCH) ? true : false;
+  GoNetIO *io_ptr = new GoNetIO(raw_stream_fd, is_server);
+  return static_cast<void *>(io_ptr);
+}
+
+void* load_circuit_file(const char *path) {
+  cout << "Loading circuit file for AG2PC: " << string(path) << endl;
+  CircuitFile *cf_ptr = new CircuitFile(path);
+  return static_cast<void *>(cf_ptr);
 }
 
 const string circuit_file_location = macro_xstr(EMP_CIRCUIT_PATH);
-void run(int party, NetIO* io, string name,
+void run(int party, NetIO* io, CircuitFile* cf,
 /* CUSTOMER INPUTS */
   State_l old_state_l,
   State_l new_state_l,
@@ -62,20 +68,12 @@ void run(int party, NetIO* io, string name,
   EcdsaSig_l* ct_escrow,
   EcdsaSig_l* ct_merch) {
 
-  // read in the circuit from the location where it was generated
-  string file = circuit_file_location + name;
-  CircuitFile cf(file.c_str());
-
-#if defined(DEBUG)
-  cout << file << endl;
-#endif
-
 #if defined(DEBUG)
   //
   // initialize some timing stuff?
   auto t1 = clock_start();
 #endif
-  C2PC twopc(io, party, &cf);
+  C2PC twopc(io, party, cf);
   io->flush();
 #if defined(DEBUG)
   cout << "one time:\t"<<party<<"\tmicroseconds: " <<time_from(t1)<<endl;
@@ -102,12 +100,12 @@ void run(int party, NetIO* io, string name,
 #endif
 
   // create and fill in input vectors (to all zeros with memset)
-  int in_length = party==CUST?cf.n2:cf.n1;
+  int in_length = party==CUST?cf->n2 : cf->n1;
   bool *in = new bool[in_length];
 #if defined(DEBUG)
-  cout << "input size: MERCH " << cf.n1 << "\tCUST " << cf.n2<<endl;
+  cout << "input size: MERCH " << cf->n1 << "\tCUST " << cf->n2<<endl;
 #endif  
-  bool *out = new bool[cf.n3];
+  bool *out = new bool[cf->n3];
   memset(in, false, in_length);
   int pos = 0;
 	if (party == CUST) {
@@ -169,12 +167,12 @@ void run(int party, NetIO* io, string name,
   cout << "in: " << res << endl;
 #endif
 
-	memset(out, false, cf.n3);
+	memset(out, false, cf->n3);
 
-  // online protocol execution
 #if defined(DEBUG)
 	t1 = clock_start();
 #endif  
+  // online protocol execution
 	twopc.online(in, out);
 #if defined(DEBUG)
 	cout << "online:\t"<<party<<"\tmicroseconds: "<<time_from(t1)<<endl;
@@ -184,7 +182,7 @@ void run(int party, NetIO* io, string name,
 	if(party == CUST)  {
 #if defined(DEBUG)
 		string res = "";
-		for(int i = 0; i < cf.n3; ++i)
+		for(int i = 0; i < cf->n3; ++i)
 			res += (out[i]?"1":"0");
 		cout << "result: " << res << endl;
 #endif
@@ -215,6 +213,7 @@ void run(int party, NetIO* io, string name,
  */
 void build_masked_tokens_cust(IOCallback io_callback,
   struct Conn_l conn,
+  void *circuit_file,
   struct Balance_l epsilon_l,
   struct RevLockCommitment_l rlc_l, // TYPISSUE: this doesn't match the docs. should be a commitment
 
@@ -272,8 +271,20 @@ void build_masked_tokens_cust(IOCallback io_callback,
   CommitmentRandomness_l hmac_commitment_randomness_l;
   CommitmentRandomness_l paytoken_mask_commitment_randomness_l;
 
-  // TODO: add a better way to get circuit path 
-  run(CUST, io2, "tokens.circuit.txt",
+  CircuitFile *cf_ptr = nullptr;
+  if (circuit_file == NULL) {
+    auto t0 = clock_start();
+    string file = circuit_file_location + "tokens.circuit.txt";
+    // load circuit and create new CircuitFile object
+    cf_ptr = static_cast<CircuitFile *>(load_circuit_file(file.c_str()));
+    cout << "load circuit time: " <<time_from(t0)<< " microseconds" << endl;
+  } else {
+    // cast into a CircuitFile object
+    cf_ptr = static_cast<CircuitFile *>(circuit_file);
+  }
+
+  // TODO: load circuit separately 
+  run(CUST, io2, cf_ptr,
 /* CUSTOMER INPUTS */
   w_old,
   w_new,
@@ -315,10 +326,12 @@ void build_masked_tokens_cust(IOCallback io_callback,
   if (io1 != nullptr) delete io1;
   if (io2 != nullptr) delete io2;
   if (io3 != nullptr) delete io3;
+  if (cf_ptr != nullptr) delete cf_ptr;
 }
 
 void build_masked_tokens_merch(IOCallback io_callback,
   struct Conn_l conn,
+  void *circuit_file,
   struct Balance_l epsilon_l,
   struct RevLockCommitment_l rlc_l, // TYPISSUE: this doesn't match the docs. should be a commitment
 
@@ -374,8 +387,19 @@ void build_masked_tokens_merch(IOCallback io_callback,
   EcdsaSig_l ct_merch;
   CommitmentRandomness_l revlock_commitment_randomness_l;
 
+  CircuitFile *cf_ptr = nullptr;
+  if (circuit_file == NULL) {
+    auto t0 = clock_start();
+    string file = circuit_file_location + "tokens.circuit.txt";
+    // load circuit and create new CircuitFile object
+    cf_ptr = static_cast<CircuitFile *>(load_circuit_file(file.c_str()));
+    cout << "load circuit time: " <<time_from(t0)<< " microseconds" << endl;
+  } else {
+    // cast into a CircuitFile object
+    cf_ptr = static_cast<CircuitFile *>(circuit_file);
+  }
 
-  run(MERCH, io2, "tokens.circuit.txt",
+  run(MERCH, io2, cf_ptr,
 /* CUSTOMER INPUTS */
   old_state_l,
   new_state_l,
@@ -417,4 +441,5 @@ void build_masked_tokens_merch(IOCallback io_callback,
   if (io1 != nullptr) delete io1;
   if (io2 != nullptr) delete io2;
   if (io3 != nullptr) delete io3;
+  if (cf_ptr != nullptr) delete cf_ptr;
 }
