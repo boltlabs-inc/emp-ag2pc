@@ -39,6 +39,7 @@ void run(int party, NetIO* io, CircuitFile* cf,
 /* CUSTOMER INPUTS */
   State_l old_state_l,
   State_l new_state_l,
+  Balance_l fee_cc,
   PayToken_l old_paytoken_l,
   BitcoinPublicKey_l cust_escrow_pub_key_l,
   BitcoinPublicKey_l cust_payout_pub_key_l,
@@ -59,6 +60,7 @@ void run(int party, NetIO* io, CircuitFile* cf,
   MaskCommitment_l paytoken_mask_commitment_l,
   RevLockCommitment_l rlc_l,
   Nonce_l nonce_l,
+  Balance_l val_cpfp,
   BitcoinPublicKey_l merch_escrow_pub_key_l,
   BitcoinPublicKey_l merch_dispute_key_l,
   BitcoinPublicKey_l merch_payout_pub_key_l,
@@ -111,23 +113,11 @@ void run(int party, NetIO* io, CircuitFile* cf,
 	if (party == CUST) {
 	    pos = translate_state(old_state_l, in, pos);
     	pos = translate_state(new_state_l, in, pos);
+    	pos = translate_balance(fee_cc, in, pos);
     	pos = translate_paytoken(old_paytoken_l, in, pos);
     	pos = translate_bitcoinPubKey(cust_escrow_pub_key_l, in, pos);
     	pos = translate_bitcoinPubKey(cust_payout_pub_key_l, in, pos);
     	pos = translate_commitmentRandomness(revlock_commitment_randomness_l, in, pos);
-
-    	/*PUBLIC*/
-    	pos = translate_balance(epsilon_l, in, pos);
-        pos = translate_hmacKeyCom(hmac_key_commitment_l, in, pos);
-        pos = translate_maskCom(paytoken_mask_commitment_l, in, pos);
-        pos = translate_revLockCom(rlc_l, in, pos);
-        pos = translate_nonce(nonce_l, in, pos);
-        pos = translate_bitcoinPubKey(merch_escrow_pub_key_l, in, pos);
-        pos = translate_bitcoinPubKey(merch_dispute_key_l, in, pos);
-        pos = translate_bitcoinPubKey(merch_payout_pub_key_l, in, pos);
-        pos = translate_pubKeyHash(merch_publickey_hash_l, in, pos);
-
-        pos = translate_constants(in, pos);
 #if defined(DEBUG)
         cout << "Position cust: " << pos << endl;
 #endif
@@ -142,24 +132,23 @@ void run(int party, NetIO* io, CircuitFile* cf,
         pos = translate_commitmentRandomness(paytoken_mask_commitment_randomness_l, in, pos);
         pos = translate_ecdsaPartialSig(sig1, in, pos);
         pos = translate_ecdsaPartialSig(sig2, in, pos);
-
-        /*PUBLIC*/
-        pos = translate_balance(epsilon_l, in, pos);
-        pos = translate_hmacKeyCom(hmac_key_commitment_l, in, pos);
-        pos = translate_maskCom(paytoken_mask_commitment_l, in, pos);
-        pos = translate_revLockCom(rlc_l, in, pos);
-        pos = translate_nonce(nonce_l, in, pos);
-        pos = translate_bitcoinPubKey(merch_escrow_pub_key_l, in, pos);
-        pos = translate_bitcoinPubKey(merch_dispute_key_l, in, pos);
-        pos = translate_bitcoinPubKey(merch_payout_pub_key_l, in, pos);
-        pos = translate_pubKeyHash(merch_publickey_hash_l, in, pos);
-
-        pos = translate_constants(in, pos);
 #if defined(DEBUG)
         cout << "Position merch: " << pos << endl;
 #endif        
   }
+  /*PUBLIC*/
+  pos = translate_balance(epsilon_l, in, pos);
+  pos = translate_hmacKeyCom(hmac_key_commitment_l, in, pos);
+  pos = translate_maskCom(paytoken_mask_commitment_l, in, pos);
+  pos = translate_revLockCom(rlc_l, in, pos);
+  pos = translate_nonce(nonce_l, in, pos);
+  pos = translate_balance(val_cpfp, in, pos);
+  pos = translate_bitcoinPubKey(merch_escrow_pub_key_l, in, pos);
+  pos = translate_bitcoinPubKey(merch_dispute_key_l, in, pos);
+  pos = translate_bitcoinPubKey(merch_payout_pub_key_l, in, pos);
+  pos = translate_pubKeyHash(merch_publickey_hash_l, in, pos);
 
+  pos = translate_constants(in, pos);
 #if defined(DEBUG)
   string res = "";
   for(int i = 0; i < in_length; ++i)
@@ -186,18 +175,18 @@ void run(int party, NetIO* io, CircuitFile* cf,
 			res += (out[i]?"1":"0");
 		cout << "result: " << res << endl;
 #endif
-    for (int i = 0; i < 8; ++i) {
-        int start = i*32;
-        pt_return->paytoken[i] = bool_to32(&out[start]);
-    }
-    for (int i = 8; i < 16; ++i) {
-        int start = i*32;
-        ct_escrow->sig[i-8] = bool_to32(&out[start]);
-    }
-    for (int i = 16; i < 24; ++i) {
-        int start = i*32;
-        ct_merch->sig[i-16] = bool_to32(&out[start]);
-    }
+        for (int i = 0; i < 8; ++i) {
+            int start = i*32;
+            pt_return->paytoken[i] = bool_to32(&out[start]);
+        }
+        for (int i = 8; i < 16; ++i) {
+            int start = i*32;
+            ct_escrow->sig[i-8] = bool_to32(&out[start]);
+        }
+        for (int i = 16; i < 24; ++i) {
+            int start = i*32;
+            ct_merch->sig[i-16] = bool_to32(&out[start]);
+        }
 	}
 	delete[] in;
 	delete[] out;
@@ -224,10 +213,12 @@ void build_masked_tokens_cust(IOCallback io_callback,
   struct PublicKeyHash_l merch_publickey_hash,
   struct BitcoinPublicKey_l merch_payout_pub_key_l,
   struct Nonce_l nonce_l,
+  struct Balance_l val_cpfp,
 
   struct CommitmentRandomness_l revlock_commitment_randomness_l,
   struct State_l w_new,
   struct State_l w_old,
+  struct Balance_l fee_cc,
   struct PayToken_l pt_old,
   struct BitcoinPublicKey_l cust_escrow_pub_key_l,
   struct BitcoinPublicKey_l cust_payout_pub_key_l,
@@ -288,6 +279,7 @@ void build_masked_tokens_cust(IOCallback io_callback,
 /* CUSTOMER INPUTS */
   w_old,
   w_new,
+  fee_cc,
   pt_old,
   cust_escrow_pub_key_l,
   cust_payout_pub_key_l,
@@ -309,6 +301,7 @@ void build_masked_tokens_cust(IOCallback io_callback,
   paymask_com,
   rlc_l,
   nonce_l,
+  val_cpfp,
   merch_escrow_pub_key_l,
   merch_dispute_key_l, 
   merch_payout_pub_key_l,
@@ -342,6 +335,7 @@ void build_masked_tokens_merch(IOCallback io_callback,
   struct PublicKeyHash_l merch_publickey_hash,
   struct BitcoinPublicKey_l merch_payout_pub_key_l,
   struct Nonce_l nonce_l,
+  struct Balance_l val_cpfp,
 
   struct HMACKey_l hmac_key,
   struct Mask_l merch_mask_l,
@@ -379,6 +373,7 @@ void build_masked_tokens_merch(IOCallback io_callback,
 
   State_l old_state_l;
   State_l new_state_l;
+  Balance_l fee_cc;
   PayToken_l old_paytoken_l;
   BitcoinPublicKey_l cust_escrow_pub_key_l;
   BitcoinPublicKey_l cust_payout_pub_key_l;
@@ -403,6 +398,7 @@ void build_masked_tokens_merch(IOCallback io_callback,
 /* CUSTOMER INPUTS */
   old_state_l,
   new_state_l,
+  fee_cc,
   old_paytoken_l,
   cust_escrow_pub_key_l,
   cust_payout_pub_key_l,
@@ -424,6 +420,7 @@ void build_masked_tokens_merch(IOCallback io_callback,
   paymask_com,
   rlc_l,
   nonce_l,
+  val_cpfp,
   merch_escrow_pub_key_l,
   merch_dispute_key_l,
   merch_payout_pub_key_l, 

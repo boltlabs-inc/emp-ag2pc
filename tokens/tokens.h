@@ -33,8 +33,8 @@ void* get_gonetio_ptr(void *raw_stream_fd, int party);
 void* load_circuit_file(const char *path);
 
 /*
- * describes an API for calling MPC functions 
- * 
+ * describes an API for calling MPC functions
+ *
  * to be integrated into Rust implementation
  *
  * This describes the basic high-level inputs we expect from the protocol.
@@ -43,8 +43,8 @@ void* load_circuit_file(const char *path);
  * the MPC frameworks
  *
  * TYPISSUE - There are some weird types here, as well. Everything has a type,
- * but some of them are clearly incorrect 
- * (e.g.a public key will not fit into a normal 32-bit integer). 
+ * but some of them are clearly incorrect
+ * (e.g.a public key will not fit into a normal 32-bit integer).
  * but I don't know what representation they -will- take.
  * I've marked such parameters with TYPISSUE
  *
@@ -96,7 +96,7 @@ struct MaskCommitment_l {
 
 
 /* This is a pay token
- * Is is an HMAC computed on the state 
+ * Is is an HMAC computed on the state
  * The output of HMAC is the underlying block size.  In this case 256 bits
  */
 struct PayToken_l {
@@ -118,7 +118,7 @@ struct EcdsaSig_l {
 * The parameter sizes are overly generous since we're storing them as decimal.
 */
 struct EcdsaPartialSig_l {
-  char r[256]; 
+  char r[256];
   char k_inv[256];
 };
 
@@ -166,9 +166,9 @@ struct CommitmentRandomness_l {
  *
  * \param nonce         : unique identifier for the transaction?
  * \param rl 			: revocation lock for current state
- * \param balance_cust  : customer balance 
+ * \param balance_cust  : customer balance
  * \param balance_merch : merchant balance
- * \param txid_merch    : transaction ID for merchant close transaction (bits, formatted as they appear in the 'source' field of a transaction that spends it) 
+ * \param txid_merch    : transaction ID for merchant close transaction (bits, formatted as they appear in the 'source' field of a transaction that spends it)
  * \param txid_escrow   : transaction ID for escrow transaction (ditto on format)
  */
 struct State_l {
@@ -180,6 +180,9 @@ struct State_l {
   struct Txid_l txid_escrow;
   struct Txid_l HashPrevOuts_merch;
   struct Txid_l HashPrevOuts_escrow;
+  struct Balance_l min_fee;
+  struct Balance_l max_fee;
+  struct Balance_l fee_mc;
 };
 
 /* customer's token generation function
@@ -190,8 +193,8 @@ struct State_l {
  * \param[in] io_callback : (admin) info for communication channel
  * \param[in] conn_type   : (admin) type of communication channel
  *
- * \param[in] epsilon              : (shared) transaction amount 
- * \param[in] rlc                  : (shared) commitment to the revocation lock for the previous state 
+ * \param[in] epsilon              : (shared) transaction amount
+ * \param[in] rlc                  : (shared) commitment to the revocation lock for the previous state
  * \param[in] paymask_com          : (shared) commitment to the mask for the pay token
  * \param[in] key_com              : (shared) commitment to the key used for HMACs
  * \param[in] merch_escrow_pub_key : (shared) bitcoin public key that the merchant uses in the escrow transaction
@@ -199,9 +202,10 @@ struct State_l {
  * \param[in] merch_publickey_hash : (shared) merchant public key, hashed for bitcoin transaction
  * \param[in] merch_payout_pub_key : (shared) merchant public key for payouts
  * \param[in] nonce                : (shared) random nonce used to uniquely identify state
+ * \param[in] val_cpfp             : (shared) child pays for parent amount
  *
- * \param[in] revlock_commitment_randomness 
- *                      : (private) randomness used to commit to revlock 
+ * \param[in] revlock_commitment_randomness
+ *                      : (private) randomness used to commit to revlock
  * \param[in] w_new     : (private) new state object
  * \param[in] w_old     : (private) previous state object
  * \param[in] pt_old    : (private) previous pay token
@@ -210,9 +214,9 @@ struct State_l {
  * \param[in] cust_payout_pub_key
  *                      : (private) bitcoin public key that the customer uses to ???
  *
- * \param[out] pt_masked    : masked pay token 
- * \param[out] ct_escrow    : masked close token - spends from escrow transaction (ECDSA signature) 
- * \param[out] ct_merch     : masked close token - spends from merchant close transaction (ECDSA signature) 
+ * \param[out] pt_masked    : masked pay token
+ * \param[out] ct_escrow    : masked close token - spends from escrow transaction (ECDSA signature)
+ * \param[out] ct_merch     : masked close token - spends from merchant close transaction (ECDSA signature)
  *
  */
 void build_masked_tokens_cust(
@@ -221,18 +225,20 @@ void build_masked_tokens_cust(
   void *circuit_file,
 
   struct Balance_l epsilon_l,
-  struct RevLockCommitment_l rlc_l, 
-  struct MaskCommitment_l paymask_com, 
+  struct RevLockCommitment_l rlc_l,
+  struct MaskCommitment_l paymask_com,
   struct HMACKeyCommitment_l key_com,
   struct BitcoinPublicKey_l merch_escrow_pub_key_l,
   struct BitcoinPublicKey_l merch_dispute_key_l,
   struct PublicKeyHash_l merch_publickey_hash,
   struct BitcoinPublicKey_l merch_payout_pub_key_l,
   struct Nonce_l nonce_l,
+  struct Balance_l val_cpfp,
 
   struct CommitmentRandomness_l revlock_commitment_randomness_l,
   struct State_l w_new,
   struct State_l w_old,
+  struct Balance_l fee_cc,
   struct PayToken_l pt_old,
   struct BitcoinPublicKey_l cust_escrow_pub_key_l,
   struct BitcoinPublicKey_l cust_payout_pub_key_l,
@@ -243,7 +249,7 @@ void build_masked_tokens_cust(
 );
 
 
-/* merchant's close-token computation function 
+/* merchant's close-token computation function
  *
  * Runs MPC to compute masked tokens (close- and pay-)
  * Blocks until computation is finished.
@@ -258,8 +264,8 @@ void build_masked_tokens_cust(
  * \param[in] io_callback : (admin) info for communication channel
  * \param[in] conn_type   : (admin) type of communication channel
  *
- * \param[in] epsilon              : (shared) transaction amount 
- * \param[in] rlc                  : (shared) commitment to the revocation lock for the previous state 
+ * \param[in] epsilon              : (shared) transaction amount
+ * \param[in] rlc                  : (shared) commitment to the revocation lock for the previous state
  * \param[in] paymask_com          : (shared) commitment to the mask for the pay token
  * \param[in] key_com              : (shared) commitment to the key used for HMACs
  * \param[in] merch_escrow_pub_key : (shared) bitcoin public key that the merchant uses in the escrow transaction
@@ -267,11 +273,12 @@ void build_masked_tokens_cust(
  * \param[in] merch_publickey_hash : (shared) merchant public key, hashed for bitcoin transaction
  * \param[in] merch_payout_pub_key : (shared) merchant public key for payouts
  * \param[in] nonce                : (shared) random nonce used to uniquely identify state
+ * \param[in] val_cpfp             : (shared) child pays for parent amount
  *
  * \param[in] hmac_key      : (private) The key used to make HMACs (e.g. ? and ?)
  * \param[in] merch_mask    : (private) Random mask for merchant close transaction
  * \param[in] escrow_mask   : (private) Random mask for the escrow close transaction
- * \param[in] paytoken_mask : (private) Random mask for the pay token 
+ * \param[in] paytoken_mask : (private) Random mask for the pay token
  * \param[in] sig1          : (private) A partial ECDSA signature for merchant close transaction
  * \param[in] sig2          : (private) A partial ECDSA signature escrow close transaction
  *
@@ -284,7 +291,7 @@ void build_masked_tokens_merch(
   void *circuit_file,
 
   struct Balance_l epsilon_l,
-  struct RevLockCommitment_l rlc_l, 
+  struct RevLockCommitment_l rlc_l,
   struct MaskCommitment_l paymask_com,
   struct HMACKeyCommitment_l key_com,
   struct BitcoinPublicKey_l merch_escrow_pub_key_l,
@@ -292,6 +299,7 @@ void build_masked_tokens_merch(
   struct PublicKeyHash_l merch_publickey_hash, // TODO: what is this?
   struct BitcoinPublicKey_l merch_payout_pub_key_l,
   struct Nonce_l nonce_l,
+  struct Balance_l val_cpfp,
 
   struct HMACKey_l hmac_key,
   struct Mask_l merch_mask_l,

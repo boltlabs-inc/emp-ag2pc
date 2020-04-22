@@ -14,7 +14,10 @@ int translate_state(State_l state, bool *in, int pos) {
     pos = translate_txid(state.txid_merch, in, pos);
     pos = translate_txid(state.txid_escrow, in, pos);
     pos = translate_txid(state.HashPrevOuts_merch, in, pos);
-    return translate_txid(state.HashPrevOuts_escrow, in, pos);
+    pos = translate_txid(state.HashPrevOuts_escrow, in, pos);
+    pos = translate_balance(state.min_fee, in, pos);
+    pos = translate_balance(state.max_fee, in, pos);
+    return translate_balance(state.fee_mc, in, pos);
 }
 
 int translate_general(uint32_t*input, int len, bool*in, int pos) {
