@@ -242,6 +242,7 @@ void build_masked_tokens_cust(
   struct PayToken_l pt_old,
   struct BitcoinPublicKey_l cust_escrow_pub_key_l,
   struct BitcoinPublicKey_l cust_payout_pub_key_l,
+  struct PublicKeyHash_l cust_publickey_hash_l,
 
   struct PayToken_l* pt_return,
   struct EcdsaSig_l* ct_escrow,

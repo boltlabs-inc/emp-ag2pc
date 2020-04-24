@@ -44,6 +44,7 @@ void run(int party, NetIO* io, CircuitFile* cf,
   BitcoinPublicKey_l cust_escrow_pub_key_l,
   BitcoinPublicKey_l cust_payout_pub_key_l,
   CommitmentRandomness_l revlock_commitment_randomness_l,
+  PublicKeyHash_l cust_publickey_hash_l,
 /* MERCHANT INPUTS */
   HMACKey_l hmac_key_l,
   Mask_l paytoken_mask_l,
@@ -118,6 +119,7 @@ void run(int party, NetIO* io, CircuitFile* cf,
     	pos = translate_bitcoinPubKey(cust_escrow_pub_key_l, in, pos);
     	pos = translate_bitcoinPubKey(cust_payout_pub_key_l, in, pos);
     	pos = translate_commitmentRandomness(revlock_commitment_randomness_l, in, pos);
+        pos = translate_pubKeyHash(cust_publickey_hash_l, in, pos);
 #if defined(DEBUG)
         cout << "Position cust: " << pos << endl;
 #endif
@@ -222,6 +224,7 @@ void build_masked_tokens_cust(IOCallback io_callback,
   struct PayToken_l pt_old,
   struct BitcoinPublicKey_l cust_escrow_pub_key_l,
   struct BitcoinPublicKey_l cust_payout_pub_key_l,
+  struct PublicKeyHash_l cust_publickey_hash_l,
 
   struct PayToken_l* pt_return,
   struct EcdsaSig_l* ct_escrow,
@@ -284,7 +287,7 @@ void build_masked_tokens_cust(IOCallback io_callback,
   cust_escrow_pub_key_l,
   cust_payout_pub_key_l,
   revlock_commitment_randomness_l,
-
+  cust_publickey_hash_l,
 /* MERCHANT INPUTS */
   hmac_key_l,
   paytoken_mask_l,
@@ -381,6 +384,7 @@ void build_masked_tokens_merch(IOCallback io_callback,
   EcdsaSig_l ct_escrow;
   EcdsaSig_l ct_merch;
   CommitmentRandomness_l revlock_commitment_randomness_l;
+  PublicKeyHash_l cust_publickey_hash_l;
 
   CircuitFile *cf_ptr = nullptr;
   if (circuit_file == NULL) {
@@ -403,7 +407,7 @@ void build_masked_tokens_merch(IOCallback io_callback,
   cust_escrow_pub_key_l,
   cust_payout_pub_key_l,
   revlock_commitment_randomness_l,
-
+  cust_publickey_hash_l,
 /* MERCHANT INPUTS */
   hmac_key,
   paytoken_mask_l,
