@@ -108,115 +108,139 @@ int translate_initSHA256(bool *in, int pos) {
     return pos;
 }
 
-int translate_constants(bool *in, int pos) {
+int translate_constants(bool *in, int pos) {    
     int32_to_bool(&in[pos], 909522486, 32);
     pos = pos + 32;
+    int32_to_bool(&in[pos], 1549556828, 32);
+    pos = pos + 32;
+    
+    // SHA256 Constants
     int32_to_bool(&in[pos], -2147483648, 32);
     pos = pos + 32;
-    int32_to_bool(&in[pos], 2048, 32);
+    int32_to_bool(&in[pos], 8388608, 32);
     pos = pos + 32;
-    int32_to_bool(&in[pos], 1549556828, 32);
+    int32_to_bool(&in[pos], 32768, 32);
+    pos = pos + 32;
+    int32_to_bool(&in[pos], 128, 32);
+    pos = pos + 32;
+    
+    // Length of stuff Constants
+    int32_to_bool(&in[pos], 2240, 32);
     pos = pos + 32;
     int32_to_bool(&in[pos], 768, 32);
     pos = pos + 32;
     int32_to_bool(&in[pos], 640, 32);
     pos = pos + 32;
-    int32_to_bool(&in[pos], 4294967295, 32);
-    pos = pos + 256;
     int32_to_bool(&in[pos], 256, 32);
+    pos = pos + 32;
+    
+    int32_to_bool(&in[pos], 384, 32);
     pos = pos + 32;
     int32_to_bool(&in[pos], 384, 32);
     pos = pos + 32;
-    int32_to_bool(&in[pos],  1671962624 , 32);
+    
+    int32_to_bool(&in[pos], 896, 32);
     pos = pos + 32;
-    int32_to_bool(&in[pos],  136 , 32);
+    int32_to_bool(&in[pos], 1824, 32);
     pos = pos + 32;
-    int32_to_bool(&in[pos],  553648128, 32);
+    int32_to_bool(&in[pos], 2168, 32);
     pos = pos + 32;
-    int32_to_bool(&in[pos],  26368, 32);
+    int32_to_bool(&in[pos], 1448, 32);
     pos = pos + 32;
-    int32_to_bool(&in[pos], 2 , 32);
+    
+    
+    // Constants for transactions
+    int32_to_bool(&in[pos], 1671962624, 32);
     pos = pos + 32;
-    int32_to_bool(&in[pos],  3473211392 , 32);
+    int32_to_bool(&in[pos], 136, 32);
     pos = pos + 32;
-    int32_to_bool(&in[pos],  45685, 32);
+    int32_to_bool(&in[pos], 553648128, 32);
     pos = pos + 32;
-    int32_to_bool(&in[pos],  896, 32);
+    int32_to_bool(&in[pos], 26368, 32);
     pos = pos + 32;
-    int32_to_bool(&in[pos],  26796, 32);
+    int32_to_bool(&in[pos], 3473211392, 32);
     pos = pos + 32;
-    int32_to_bool(&in[pos],  570433536 , 32);
+    int32_to_bool(&in[pos], 45685, 32);
     pos = pos + 32;
-    int32_to_bool(&in[pos],  22 , 32);
+    int32_to_bool(&in[pos], 26796, 32);
     pos = pos + 32;
-    int32_to_bool(&in[pos],  1310720 , 32);
+    int32_to_bool(&in[pos], 570433536, 32);
     pos = pos + 32;
-    int32_to_bool(&in[pos],  17258, 32);
+    int32_to_bool(&in[pos], 22, 32);
     pos = pos + 32;
-    int32_to_bool(&in[pos],  1090519040, 32);
+    int32_to_bool(&in[pos], 1310720, 32);
     pos = pos + 32;
-    int32_to_bool(&in[pos], 32768 , 32);
+    int32_to_bool(&in[pos], 17258, 32);
     pos = pos + 32;
-    int32_to_bool(&in[pos],  1200, 32);
+    int32_to_bool(&in[pos], 1090519040, 32);
     pos = pos + 32;
-    int32_to_bool(&in[pos],  33554432 , 32);
+    int32_to_bool(&in[pos], 33554432, 32);
     pos = pos + 32;
-    int32_to_bool(&in[pos],  1001467945  , 32);
+    int32_to_bool(&in[pos], 1001467945, 32);
     pos = pos + 32;
-    int32_to_bool(&in[pos],  3464175445 , 32);
+    int32_to_bool(&in[pos], 3464175445, 32);
     pos = pos + 32;
-    int32_to_bool(&in[pos],  2666915655 , 32);
+    int32_to_bool(&in[pos], 2666915655, 32);
     pos = pos + 32;
-    int32_to_bool(&in[pos],  4239147935 , 32);
+    int32_to_bool(&in[pos], 4239147935, 32);
     pos = pos + 32;
-    int32_to_bool(&in[pos],   341156588 , 32);
+    int32_to_bool(&in[pos], 341156588, 32);
     pos = pos + 32;
-    int32_to_bool(&in[pos],  2086603191 , 32);
+    int32_to_bool(&in[pos], 2086603191, 32);
     pos = pos + 32;
-    int32_to_bool(&in[pos],   579893598 , 32);
+    int32_to_bool(&in[pos], 579893598, 32);
     pos = pos + 32;
-    int32_to_bool(&in[pos],  1885753412  , 32);
+    int32_to_bool(&in[pos], 1885753412, 32);
     pos = pos + 32;
-    int32_to_bool(&in[pos],  1196564736, 32);
+    int32_to_bool(&in[pos], 1196564736, 32);
     pos = pos + 32;
-    int32_to_bool(&in[pos],  21166, 32);
+    int32_to_bool(&in[pos], 21166, 32);
     pos = pos + 32;
-    int32_to_bool(&in[pos],  4294967295 , 32);
+    int32_to_bool(&in[pos], 16777216, 32);
     pos = pos + 32;
-    int32_to_bool(&in[pos],  16777216 , 32);
+    int32_to_bool(&in[pos], 1919111713, 32);
     pos = pos + 32;
-    int32_to_bool(&in[pos],  1824, 32);
+    int32_to_bool(&in[pos], 2162688, 32);
     pos = pos + 32;
-    int32_to_bool(&in[pos],  1919111713 , 32);
+    int32_to_bool(&in[pos], 82, 32);
     pos = pos + 32;
-    int32_to_bool(&in[pos],  2162688 , 32);
+    int32_to_bool(&in[pos], 2925986511, 32);
     pos = pos + 32;
-    int32_to_bool(&in[pos],  82, 32);
+    int32_to_bool(&in[pos], 95581473, 32);
     pos = pos + 32;
-    int32_to_bool(&in[pos],  2925986511 , 32);
+    int32_to_bool(&in[pos], 11298816, 32);
     pos = pos + 32;
-    int32_to_bool(&in[pos],    95581473 , 32);
+    int32_to_bool(&in[pos], 5632, 32);
     pos = pos + 32;
-    int32_to_bool(&in[pos],  11298816, 32);
+    int32_to_bool(&in[pos], 335544320, 32);
     pos = pos + 32;
-    int32_to_bool(&in[pos],  255 , 32);
-    pos = pos + 32;
-    int32_to_bool(&in[pos],  4294967040 , 32);
-    pos = pos + 32;
-    int32_to_bool(&in[pos],  1 , 32);
-    pos = pos + 32;
-    int32_to_bool(&in[pos],  128 , 32);
-    pos = pos + 32;
-    int32_to_bool(&in[pos],  2168, 32);
+    
+    // Selection masks
+    int32_to_bool(&in[pos], 4294967295, 32);
+    pos = pos + 256;
+    int32_to_bool(&in[pos], 4294967295, 32);
+    pos = pos + 64;
+    int32_to_bool(&in[pos], 4294967295, 32);
     pos = pos + 32;
     int32_to_bool(&in[pos], 16711680, 32);
     pos = pos + 32;
+    int32_to_bool(&in[pos], 255, 32);
+    pos = pos + 32;
+    int32_to_bool(&in[pos], 4294967040, 32);
+    pos = pos + 32;
     int32_to_bool(&in[pos], 65280, 32);
     pos = pos + 32;
+    
     int32_to_bool(&in[pos], 32, 32);
     pos = pos + 256;
     int32_to_bool(&in[pos], 0, 32);
     pos = pos + 32;
+    int32_to_bool(&in[pos], 1, 32);
+    pos = pos + 32;
+    int32_to_bool(&in[pos], 2, 32);
+    pos = pos + 32;
+    int32_to_bool(&in[pos], 546, 32);
+    pos = pos + 64;
 
     pos = translate_initSHA256(in, pos);
 
