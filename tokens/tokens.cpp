@@ -62,6 +62,7 @@ void run(int party, NetIO* io, CircuitFile* cf,
   RevLockCommitment_l rlc_l,
   Nonce_l nonce_l,
   Balance_l val_cpfp,
+  uint32_t self_delay,
   BitcoinPublicKey_l merch_escrow_pub_key_l,
   BitcoinPublicKey_l merch_dispute_key_l,
   BitcoinPublicKey_l merch_payout_pub_key_l,
@@ -145,6 +146,7 @@ void run(int party, NetIO* io, CircuitFile* cf,
   pos = translate_revLockCom(rlc_l, in, pos);
   pos = translate_nonce(nonce_l, in, pos);
   pos = translate_balance(val_cpfp, in, pos);
+  pos = translate_general(&self_delay, 1, in, pos);
   pos = translate_bitcoinPubKey(merch_escrow_pub_key_l, in, pos);
   pos = translate_bitcoinPubKey(merch_dispute_key_l, in, pos);
   pos = translate_bitcoinPubKey(merch_payout_pub_key_l, in, pos);
@@ -216,6 +218,7 @@ void build_masked_tokens_cust(IOCallback io_callback,
   struct BitcoinPublicKey_l merch_payout_pub_key_l,
   struct Nonce_l nonce_l,
   struct Balance_l val_cpfp,
+  uint32_t self_delay,
 
   struct CommitmentRandomness_l revlock_commitment_randomness_l,
   struct State_l w_new,
@@ -305,6 +308,7 @@ void build_masked_tokens_cust(IOCallback io_callback,
   rlc_l,
   nonce_l,
   val_cpfp,
+  self_delay,
   merch_escrow_pub_key_l,
   merch_dispute_key_l, 
   merch_payout_pub_key_l,
@@ -339,6 +343,7 @@ void build_masked_tokens_merch(IOCallback io_callback,
   struct BitcoinPublicKey_l merch_payout_pub_key_l,
   struct Nonce_l nonce_l,
   struct Balance_l val_cpfp,
+  uint32_t self_delay,
 
   struct HMACKey_l hmac_key,
   struct Mask_l merch_mask_l,
@@ -425,6 +430,7 @@ void build_masked_tokens_merch(IOCallback io_callback,
   rlc_l,
   nonce_l,
   val_cpfp,
+  self_delay,
   merch_escrow_pub_key_l,
   merch_dispute_key_l,
   merch_payout_pub_key_l, 

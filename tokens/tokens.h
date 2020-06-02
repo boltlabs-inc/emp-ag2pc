@@ -203,6 +203,7 @@ struct State_l {
  * \param[in] merch_payout_pub_key : (shared) merchant public key for payouts
  * \param[in] nonce                : (shared) random nonce used to uniquely identify state
  * \param[in] val_cpfp             : (shared) child pays for parent amount
+ * \param[in] self_delay            : (shared) number of blocks as delay in timelock
  *
  * \param[in] revlock_commitment_randomness
  *                      : (private) randomness used to commit to revlock
@@ -234,6 +235,7 @@ void build_masked_tokens_cust(
   struct BitcoinPublicKey_l merch_payout_pub_key_l,
   struct Nonce_l nonce_l,
   struct Balance_l val_cpfp,
+  uint32_t self_delay,
 
   struct CommitmentRandomness_l revlock_commitment_randomness_l,
   struct State_l w_new,
@@ -275,6 +277,7 @@ void build_masked_tokens_cust(
  * \param[in] merch_payout_pub_key : (shared) merchant public key for payouts
  * \param[in] nonce                : (shared) random nonce used to uniquely identify state
  * \param[in] val_cpfp             : (shared) child pays for parent amount
+ * \param[in] self_delay            : (shared) number of blocks as delay in timelock
  *
  * \param[in] hmac_key      : (private) The key used to make HMACs (e.g. ? and ?)
  * \param[in] merch_mask    : (private) Random mask for merchant close transaction
@@ -301,6 +304,7 @@ void build_masked_tokens_merch(
   struct BitcoinPublicKey_l merch_payout_pub_key_l,
   struct Nonce_l nonce_l,
   struct Balance_l val_cpfp,
+  uint32_t self_delay,
 
   struct HMACKey_l hmac_key,
   struct Mask_l merch_mask_l,
