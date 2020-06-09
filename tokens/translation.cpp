@@ -237,8 +237,6 @@ int translate_constants(bool *in, int pos) {
     pos = pos + 32;
     int32_to_bool(&in[pos], 2, 32);
     pos = pos + 32;
-    int32_to_bool(&in[pos], 546, 32);
-    pos = pos + 64;
 
     pos = translate_initSHA256(in, pos);
 
