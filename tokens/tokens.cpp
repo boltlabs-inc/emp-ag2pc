@@ -150,7 +150,9 @@ void run(int party, NetIO* io, CircuitFile* cf,
   pos = translate_balance(val_cpfp, in, pos);
   pos = translate_balance(bal_min_cust, in, pos);
   pos = translate_balance(bal_min_merch, in, pos);
-  pos = translate_general(&self_delay, 1, in, pos);
+//  pos = translate_general(&self_delay, 1, in, pos);
+  int32_to_bool(&in[pos], self_delay, 32);
+  pos = pos + 32;
   pos = translate_bitcoinPubKey(merch_escrow_pub_key_l, in, pos);
   pos = translate_bitcoinPubKey(merch_dispute_key_l, in, pos);
   pos = translate_bitcoinPubKey(merch_payout_pub_key_l, in, pos);
@@ -183,16 +185,17 @@ void run(int party, NetIO* io, CircuitFile* cf,
 			res += (out[i]?"1":"0");
 		cout << "result: " << res << endl;
 #endif
+		// +1 because 1 bit was revealed to do an if-else-statement
         for (int i = 0; i < 8; ++i) {
-            int start = i*32;
+            int start = i*32+1;
             pt_return->paytoken[i] = bool_to32(&out[start]);
         }
         for (int i = 8; i < 16; ++i) {
-            int start = i*32;
+            int start = i*32+1;
             ct_escrow->sig[i-8] = bool_to32(&out[start]);
         }
         for (int i = 16; i < 24; ++i) {
-            int start = i*32;
+            int start = i*32+1;
             ct_merch->sig[i-16] = bool_to32(&out[start]);
         }
 	}
