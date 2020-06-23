@@ -6,7 +6,6 @@ using namespace std;
 
 #define MERCH ALICE
 #define CUST BOB
-#define DEBUG 1
 
 using namespace emp;
 
@@ -65,7 +64,7 @@ void run(int party, NetIO* io, CircuitFile* cf,
   Balance_l val_cpfp,
   Balance_l bal_min_cust,
   Balance_l bal_min_merch,
-  uint32_t self_delay,
+  uint16_t self_delay,
   BitcoinPublicKey_l merch_escrow_pub_key_l,
   BitcoinPublicKey_l merch_dispute_key_l,
   BitcoinPublicKey_l merch_payout_pub_key_l,
@@ -151,7 +150,7 @@ void run(int party, NetIO* io, CircuitFile* cf,
   pos = translate_balance(val_cpfp, in, pos);
   pos = translate_balance(bal_min_cust, in, pos);
   pos = translate_balance(bal_min_merch, in, pos);
-  pos = translate_general(&self_delay, 1, in, pos);
+  pos = translate_self_delay(self_delay, in, pos);
   pos = translate_bitcoinPubKey(merch_escrow_pub_key_l, in, pos);
   pos = translate_bitcoinPubKey(merch_dispute_key_l, in, pos);
   pos = translate_bitcoinPubKey(merch_payout_pub_key_l, in, pos);
@@ -185,17 +184,16 @@ void run(int party, NetIO* io, CircuitFile* cf,
 			res += (out[i]?"1":"0");
 		cout << "result: " << res << endl;
 #endif
-		// +32 because length of self_delay was revealed to do an if-else-statement
         for (int i = 0; i < 8; ++i) {
-            int start = i*32+32;
+            int start = i*32;
             pt_return->paytoken[i] = bool_to32(&out[start]);
         }
         for (int i = 8; i < 16; ++i) {
-            int start = i*32+32;
+            int start = i*32;
             ct_escrow->sig[i-8] = bool_to32(&out[start]);
         }
         for (int i = 16; i < 24; ++i) {
-            int start = i*32+32;
+            int start = i*32;
             ct_merch->sig[i-16] = bool_to32(&out[start]);
         }
 	}
@@ -227,7 +225,7 @@ void build_masked_tokens_cust(IOCallback io_callback,
   struct Balance_l val_cpfp,
   struct Balance_l bal_min_cust,
   struct Balance_l bal_min_merch,
-  uint32_t self_delay,
+  uint16_t self_delay,
 
   struct CommitmentRandomness_l revlock_commitment_randomness_l,
   struct State_l w_new,
@@ -356,7 +354,7 @@ void build_masked_tokens_merch(IOCallback io_callback,
   struct Balance_l val_cpfp,
   struct Balance_l bal_min_cust,
   struct Balance_l bal_min_merch,
-  uint32_t self_delay,
+  uint16_t self_delay,
 
   struct HMACKey_l hmac_key,
   struct Mask_l merch_mask_l,

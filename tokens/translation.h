@@ -20,3 +20,4 @@ int translate_pubKeyHash(PublicKeyHash_l pub_key_hash, bool *in, int pos);
 int translate_ecdsaPartialSig(EcdsaPartialSig_l par_sig, bool *in, int pos);
 int translate_initSHA256(bool *in, int pos);
 int translate_constants(bool *in, int pos);
+int translate_self_delay(uint16_t self_delay, bool *in, int pos);

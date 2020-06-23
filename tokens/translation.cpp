@@ -28,6 +28,11 @@ int translate_general(uint32_t *input, int len, bool *in, int pos) {
     return pos;
 }
 
+int translate_self_delay(uint16_t self_delay, bool *in, int pos) {
+    int32_to_bool(&in[pos], self_delay, 16);
+    return pos + 16;
+}
+
 int translate_nonce(Nonce_l nonce, bool *in, int pos) {
     return translate_general(nonce.nonce, 4, in, pos);
 }
@@ -135,9 +140,13 @@ int translate_constants(bool *in, int pos) {
 
     int32_to_bool(&in[pos], 896, 32);
     pos = pos + 32;
+    int32_to_bool(&in[pos], 888, 32);
+    pos = pos + 32;
     int32_to_bool(&in[pos], 1824, 32);
     pos = pos + 32;
     int32_to_bool(&in[pos], 2168, 32);
+    pos = pos + 32;
+    int32_to_bool(&in[pos], 2160, 32);
     pos = pos + 32;
     int32_to_bool(&in[pos], 1448, 32);
     pos = pos + 32;
@@ -194,6 +203,8 @@ int translate_constants(bool *in, int pos) {
     pos = pos + 32;
     int32_to_bool(&in[pos], 1919111713, 32);
     pos = pos + 32;
+    int32_to_bool(&in[pos], 1902334497, 32);
+    pos = pos + 32;
     int32_to_bool(&in[pos], 1375731712, 32);
     pos = pos + 32;
     int32_to_bool(&in[pos], 2925985792, 32);
@@ -228,10 +239,6 @@ int translate_constants(bool *in, int pos) {
     int32_to_bool(&in[pos], 1, 32);
     pos = pos + 32;
     int32_to_bool(&in[pos], 2, 32);
-    pos = pos + 32;
-    int32_to_bool(&in[pos], 16, 32);
-    pos = pos + 32;
-    int32_to_bool(&in[pos], 24, 32);
     pos = pos + 32;
 
     pos = translate_initSHA256(in, pos);
