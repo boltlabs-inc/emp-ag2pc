@@ -142,11 +142,15 @@ int translate_constants(bool *in, int pos) {
     pos = pos + 32;
     int32_to_bool(&in[pos], 888, 32);
     pos = pos + 32;
+    int32_to_bool(&in[pos], 880, 32);
+    pos = pos + 32;
     int32_to_bool(&in[pos], 1824, 32);
     pos = pos + 32;
     int32_to_bool(&in[pos], 2168, 32);
     pos = pos + 32;
     int32_to_bool(&in[pos], 2160, 32);
+    pos = pos + 32;
+    int32_to_bool(&in[pos], 2152, 32);
     pos = pos + 32;
     int32_to_bool(&in[pos], 1448, 32);
     pos = pos + 32;
@@ -205,6 +209,8 @@ int translate_constants(bool *in, int pos) {
     pos = pos + 32;
     int32_to_bool(&in[pos], 1902334497, 32);
     pos = pos + 32;
+    int32_to_bool(&in[pos], 1885557281, 32);
+    pos = pos + 32;
     int32_to_bool(&in[pos], 1375731712, 32);
     pos = pos + 32;
     int32_to_bool(&in[pos], 2925985792, 32);
@@ -240,6 +246,8 @@ int translate_constants(bool *in, int pos) {
     pos = pos + 32;
     int32_to_bool(&in[pos], 2, 32);
     pos = pos + 32;
+    int32_to_bool(&in[pos], 80, 8);
+    pos = pos + 8;
 
     pos = translate_initSHA256(in, pos);
 
