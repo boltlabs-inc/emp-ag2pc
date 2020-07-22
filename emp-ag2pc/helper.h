@@ -13,7 +13,8 @@ using std::flush;
 
 namespace emp {
 
-void send_bool_aligned(NetIO* io, const bool * data, int length) {
+template<typename IO>
+void send_bool_aligned(IO* io, const bool * data, int length) {
 	unsigned long long * data64 = (unsigned long long * )data;
 	int i = 0;
 #if !defined(__BMI2__)
@@ -37,7 +38,9 @@ void send_bool_aligned(NetIO* io, const bool * data, int length) {
 	if (8*i != length)
 		io->send_data(data + 8*i, length - 8*i);
 }
-void recv_bool_aligned(NetIO* io, bool * data, int length) {
+
+template<typename IO>
+void recv_bool_aligned(IO* io, bool * data, int length) {
 	unsigned long long * data64 = (unsigned long long *) data;
 	int i = 0;
 #if !defined(__BMI2__)
@@ -60,7 +63,8 @@ void recv_bool_aligned(NetIO* io, bool * data, int length) {
 	if (8*i != length)
 		io->recv_data(data + 8*i, length - 8*i);
 }
-void send_bool(NetIO * io, bool * data, int length) {
+template<typename IO>
+void send_bool(IO * io, bool * data, int length) {
 	void * ptr = (void *)data;
 	size_t space = length;
 	void * aligned = boost::alignment::align(alignof(uint64_t), sizeof(uint64_t), ptr, space);
@@ -69,11 +73,12 @@ void send_bool(NetIO * io, bool * data, int length) {
     else{
         int diff = length - space;
         io->send_data(data, diff);
-        send_bool_aligned(io, (const bool*)aligned, length - diff);
+        send_bool_aligned<IO>(io, (const bool*)aligned, length - diff);
     }
 }
 
-void recv_bool(NetIO * io, bool * data, int length) {
+template<typename IO>
+void recv_bool(IO * io, bool * data, int length) {
 	void * ptr = (void *)data;
 	size_t space = length;
 	void * aligned = boost::alignment::align(alignof(uint64_t), sizeof(uint64_t), ptr, space);
@@ -86,15 +91,15 @@ void recv_bool(NetIO * io, bool * data, int length) {
     }
 }
 
-template<int B>
-void send_partial_block(NetIO * io, const block * data, int length) {
+template<typename IO, int B>
+void send_partial_block(IO * io, const block * data, int length) {
 	for(int i = 0; i < length; ++i) {
 		io->send_data(&(data[i]), B);
 	}
 }
 
-template<int B>
-void recv_partial_block(NetIO * io, block * data, int length) {
+template<typename IO, int B>
+void recv_partial_block(IO * io, block * data, int length) {
 	for(int i = 0; i < length; ++i) {
 		io->recv_data(&(data[i]), B);
 	}

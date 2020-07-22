@@ -25,7 +25,7 @@ void test(int party, NetIO* io, string name, string check_output = "") {
     //
     // initialize some timing stuff?
 	auto t1 = clock_start();
-	C2PC twopc(io, party, &cf);
+	C2PC<NetIO> twopc(io, party, &cf);
 	io->flush();
 	cout << "one time:\t"<<party<<"\t" <<time_from(t1)<<endl;
 

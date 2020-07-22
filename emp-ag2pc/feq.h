@@ -3,12 +3,13 @@
 #include <emp-tool/emp-tool.h>
 
 namespace emp {
-class Feq { 
+template<typename IO>
+class Feq {
 public:
 	Hash h;
-	NetIO* io = nullptr;
+	IO* io = nullptr;
 	int party;
-	Feq(NetIO* io, int party) {
+    Feq(IO* io, int party) {
 		this->io = io;
 		this->party = party;
 	}

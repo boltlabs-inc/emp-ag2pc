@@ -6,7 +6,7 @@ using namespace emp;
 const string circuit_file_location = macro_xstr(EMP_CIRCUIT_PATH);
 void test_with_in(int party, NetIO* io, bool *in, CircuitFile cf, string check_output = "") {
 	auto t1 = clock_start();
-	C2PC twopc(io, party, &cf);
+	C2PC<NetIO> twopc(io, party, &cf);
 	io->flush();
 	cout << "one time:\t"<<party<<"\t" <<time_from(t1)<<endl;
 

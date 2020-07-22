@@ -79,7 +79,7 @@ void run(int party, NetIO* io, CircuitFile* cf,
   // initialize some timing stuff?
   auto t1 = clock_start();
 #endif
-  C2PC twopc(io, party, cf);
+  C2PC<NetIO> twopc(io, party, cf);
   io->flush();
 #if defined(DEBUG)
   cout << "one time:\t"<<party<<"\tmicroseconds: " <<time_from(t1)<<endl;
@@ -211,6 +211,9 @@ void run(int party, NetIO* io, CircuitFile* cf,
  */
 void build_masked_tokens_cust(IOCallback io_callback,
   struct Conn_l conn,
+  void *peer,
+  cb_send send_cb,
+  cb_receive receive_cb,
   void *circuit_file,
   struct Balance_l epsilon_l,
   struct RevLockCommitment_l rlc_l, // TYPISSUE: this doesn't match the docs. should be a commitment
@@ -340,6 +343,9 @@ void build_masked_tokens_cust(IOCallback io_callback,
 
 void build_masked_tokens_merch(IOCallback io_callback,
   struct Conn_l conn,
+  void *peer,
+  cb_send send_cb,
+  cb_receive receive_cb,
   void *circuit_file,
   struct Balance_l epsilon_l,
   struct RevLockCommitment_l rlc_l, // TYPISSUE: this doesn't match the docs. should be a commitment

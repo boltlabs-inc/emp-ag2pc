@@ -6,11 +6,11 @@
 
 //#define __debug
 namespace emp {
-template<int exec>
+template<typename IO, int exec>
 class AmortizedC2PC { public:
 	const static int SSP = 5;//5*8 in fact...
 	const block MASK = makeBlock(0x0ULL, 0xFFFFFULL);
-	Fpre* fpre = nullptr;
+	Fpre<IO>* fpre = nullptr;
 	block * mac[exec];
 	block * key[exec];
 	bool * value[exec];
@@ -27,7 +27,7 @@ class AmortizedC2PC { public:
 
 	bool * mask[exec];
 	CircuitFile * cf;
-	NetIO * io;
+	IO * io;
 	int num_ands = 0;
 	int party, total_pre;
 	int exec_times = 0;
@@ -36,7 +36,7 @@ class AmortizedC2PC { public:
 	bool * x2[exec];
 	bool * y2[exec];
 
-	AmortizedC2PC(NetIO * io, int party, CircuitFile * cf) {
+	AmortizedC2PC(IO * io, int party, CircuitFile * cf) {
 		this->party = party;
 		this->io = io;
 		this->cf = cf;
@@ -45,7 +45,7 @@ class AmortizedC2PC { public:
 				++num_ands;
 		}
 		total_pre = cf->n1 + cf->n2 + num_ands;
-		fpre = new Fpre(io, party, num_ands*exec);
+		fpre = new Fpre<IO>(io, party, num_ands*exec);
 
 		preprocess_mac = new block[total_pre*exec];
 		preprocess_key = new block[total_pre*exec];
@@ -187,21 +187,21 @@ class AmortizedC2PC { public:
 
 		if(party == ALICE) {
 			for(int e = 0; e < exec; ++e) {
-				send_bool(io, x1[e], num_ands);
-				send_bool(io, y1[e], num_ands);
+				send_bool<IO>(io, x1[e], num_ands);
+				send_bool<IO>(io, y1[e], num_ands);
 			}
 			for(int e = 0; e < exec; ++e) {
-				recv_bool(io, x2[e], num_ands);
-				recv_bool(io, y2[e], num_ands);
+				recv_bool<IO>(io, x2[e], num_ands);
+				recv_bool<IO>(io, y2[e], num_ands);
 			}
 		} else {
 			for(int e = 0; e < exec; ++e) {
-				recv_bool(io, x2[e], num_ands);
-				recv_bool(io, y2[e], num_ands);
+				recv_bool<IO>(io, x2[e], num_ands);
+				recv_bool<IO>(io, y2[e], num_ands);
 			}
 			for(int e = 0; e < exec; ++e) {
-				send_bool(io, x1[e], num_ands);
-				send_bool(io, y1[e], num_ands);
+				send_bool<IO>(io, x1[e], num_ands);
+				send_bool<IO>(io, y1[e], num_ands);
 			}
 		}
 
@@ -281,7 +281,7 @@ class AmortizedC2PC { public:
 #endif
 						}
 						for(int j = 0; j < 4; ++j ) {
-							send_partial_block<SSP>(io, &H[j][0], 1);
+							send_partial_block<IO, SSP>(io, &H[j][0], 1);
 							io->send_block(&H[j][1], 1);
 						}
 
@@ -294,7 +294,7 @@ class AmortizedC2PC { public:
 							check2(M[j], K[j], r[j]);
 #endif
 						for(int j = 0; j < 4; ++j ) {
-							recv_partial_block<SSP>(io, &GT[e][ands][j][0], 1);
+							recv_partial_block<IO, SSP>(io, &GT[e][ands][j][0], 1);
 							io->recv_block(&GT[e][ands][j][1], 1);
 						}
 
@@ -307,11 +307,11 @@ class AmortizedC2PC { public:
 		block tmp;
 		if(party == ALICE) {
 			for(int e = 0; e < exec; ++e)
-				send_partial_block<SSP>(io, mac[e], cf->n1);
+				send_partial_block<IO, SSP>(io, mac[e], cf->n1);
 
 			for(int e = 0; e < exec; ++e)
 				for(int i = cf->n1; i < cf->n1+cf->n2; ++i) {
-					recv_partial_block<SSP>(io, &tmp, 1);
+					recv_partial_block<IO, SSP>(io, &tmp, 1);
 					block ttt = xorBlocks(key[e][i], fpre->Delta);
 					ttt =  _mm_and_si128(ttt, MASK);
 					block mask_key = _mm_and_si128(key[e][i], MASK);
@@ -326,7 +326,7 @@ class AmortizedC2PC { public:
 		} else {
 			for(int e = 0; e < exec; ++e)
 				for(int i = 0; i < cf->n1; ++i) {
-					recv_partial_block<SSP>(io, &tmp, 1);
+					recv_partial_block<IO, SSP>(io, &tmp, 1);
 					block ttt = xorBlocks(key[e][i], fpre->Delta);
 					ttt =  _mm_and_si128(ttt, MASK);
 					tmp =  _mm_and_si128(tmp, MASK);
@@ -340,7 +340,7 @@ class AmortizedC2PC { public:
 					else cout <<"no match! BOB\t"<<i<<endl;
 				}
 			for(int e = 0; e < exec; ++e)
-				send_partial_block<SSP>(io, mac[e]+cf->n1, cf->n2);
+				send_partial_block<IO, SSP>(io, mac[e]+cf->n1, cf->n2);
 		}
 	}
 
@@ -399,15 +399,15 @@ class AmortizedC2PC { public:
 		}
 
 		if(party == ALICE) {
-			send_bool(fpre->io2[I], x1[e], num_ands);
-			send_bool(fpre->io2[I], y1[e], num_ands);
-			recv_bool(fpre->io2[I], x2[e], num_ands);
-			recv_bool(fpre->io2[I], y2[e], num_ands);
+			send_bool<IO>(fpre->io2[I], x1[e], num_ands);
+			send_bool<IO>(fpre->io2[I], y1[e], num_ands);
+			recv_bool<IO>(fpre->io2[I], x2[e], num_ands);
+			recv_bool<IO>(fpre->io2[I], y2[e], num_ands);
 		} else {
-			recv_bool(fpre->io2[I], x2[e], num_ands);
-			recv_bool(fpre->io2[I], y2[e], num_ands);
-			send_bool(fpre->io2[I], x1[e], num_ands);
-			send_bool(fpre->io2[I], y1[e], num_ands);
+			recv_bool<IO>(fpre->io2[I], x2[e], num_ands);
+			recv_bool<IO>(fpre->io2[I], y2[e], num_ands);
+			send_bool<IO>(fpre->io2[I], x1[e], num_ands);
+			send_bool<IO>(fpre->io2[I], y1[e], num_ands);
 		}
 
 		for(int i = 0; i < num_ands; ++i) {
@@ -482,7 +482,7 @@ class AmortizedC2PC { public:
 #endif
 					}
 					for(int j = 0; j < 4; ++j ) {
-						send_partial_block<SSP>(fpre->io2[I], &H[j][0], 1);
+						send_partial_block<IO, SSP>(fpre->io2[I], &H[j][0], 1);
 						fpre->io2[I]->send_block(&H[j][1], 1);
 					}
 				} else {
@@ -494,7 +494,7 @@ class AmortizedC2PC { public:
 						check2(M[j], K[j], r[j]);
 #endif
 					for(int j = 0; j < 4; ++j ) {
-						recv_partial_block<SSP>(fpre->io2[I], &GT[e][ands][j][0], 1);
+						recv_partial_block<IO, SSP>(fpre->io2[I], &GT[e][ands][j][0], 1);
 						fpre->io2[I]->recv_block(&GT[e][ands][j][1], 1);
 					}
 				}
@@ -504,9 +504,9 @@ class AmortizedC2PC { public:
 
 		block tmp;
 		if(party == ALICE) {
-			send_partial_block<SSP>(fpre->io2[I], mac[e], cf->n1);
+			send_partial_block<IO, SSP>(fpre->io2[I], mac[e], cf->n1);
 			for(int i = cf->n1; i < cf->n1+cf->n2; ++i) {
-				recv_partial_block<SSP>(fpre->io2[I], &tmp, 1);
+				recv_partial_block<IO, SSP>(fpre->io2[I], &tmp, 1);
 				block ttt = xorBlocks(key[e][i], fpre->Delta);
 				ttt =  _mm_and_si128(ttt, MASK);
 				block mask_key = _mm_and_si128(key[e][i], MASK);
@@ -519,7 +519,7 @@ class AmortizedC2PC { public:
 			}
 		} else {
 			for(int i = 0; i < cf->n1; ++i) {
-				recv_partial_block<SSP>(fpre->io2[I], &tmp, 1);
+				recv_partial_block<IO, SSP>(fpre->io2[I], &tmp, 1);
 				block ttt = xorBlocks(key[e][i], fpre->Delta);
 				ttt =  _mm_and_si128(ttt, MASK);
 				tmp =  _mm_and_si128(tmp, MASK);
@@ -531,7 +531,7 @@ class AmortizedC2PC { public:
 				}
 				else cout <<"no match! BOB\t"<<i<<endl;
 			}
-			send_partial_block<SSP>(fpre->io2[I], mac[e]+cf->n1, cf->n2);
+			send_partial_block<IO, SSP>(fpre->io2[I], mac[e]+cf->n1, cf->n2);
 		}
 		fpre->io2[I]->flush();
 	}
@@ -559,7 +559,7 @@ class AmortizedC2PC { public:
 				io->send_block(&tmp, 1);
 			}
 			//send output mask data
-			send_partial_block<SSP>(io, mac[exec_times]+cf->num_wire - cf->n3, cf->n3);
+			send_partial_block<IO, SSP>(io, mac[exec_times]+cf->num_wire - cf->n3, cf->n3);
 		} else {
 			for(int i = 0; i < cf->n1; ++i) {
 				mask_input[i] = logic_xor(input[i], value[exec_times][i]);
@@ -606,7 +606,7 @@ class AmortizedC2PC { public:
 			bool * o = new bool[cf->n3];
 			for(int i = 0; i < cf->n3; ++i) {
 				block tmp;
-				recv_partial_block<SSP>(io, &tmp, 1);
+				recv_partial_block<IO, SSP>(io, &tmp, 1);
 				tmp =  _mm_and_si128(tmp, MASK);
 
 				block ttt = xorBlocks(key[exec_times][cf->num_wire - cf-> n3 + i], fpre->Delta);

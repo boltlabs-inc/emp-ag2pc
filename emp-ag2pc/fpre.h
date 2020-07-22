@@ -9,7 +9,8 @@
 
 namespace emp {
 //#define __debug
-void abit_run(DeltaOT * abit, NetIO * io, bool send, block * blocks, bool * bools, int length) {
+template<typename IO>
+void abit_run(DeltaOT<IO> * abit, IO * io, bool send, block * blocks, bool * bools, int length) {
 	io->flush();
 	if(send) {
 		abit->send(blocks, length);
@@ -19,9 +20,12 @@ void abit_run(DeltaOT * abit, NetIO * io, bool send, block * blocks, bool * bool
 	io->flush();
 }
 
+template<typename IO>
 class Fpre;
-void combine_merge(Fpre * fpre, int start, int length, int I, bool * data, bool* data2, block * MAC2, block * KEY2, bool *r2, int * location);
+template<typename IO>
+void combine_merge(Fpre<IO> * fpre, int start, int length, int I, bool * data, bool* data2, block * MAC2, block * KEY2, bool *r2, int * location);
 
+template<typename IO>
 class Fpre {
 	public:
 		ThreadPool *pool;
@@ -33,28 +37,28 @@ class Fpre {
 		PRG prg;
 		PRP prp;
 		PRP *prps;
-		NetIO *io[THDS];
-		NetIO *io2[THDS];
-		DeltaOT *abit1[THDS], *abit2[THDS];
+		IO *io[THDS];
+		IO *io2[THDS];
+		DeltaOT<IO> *abit1[THDS], *abit2[THDS];
 		block Delta;
-		Feq *eq[THDS];
+		Feq<IO> *eq[THDS];
 		block * MAC = nullptr, *KEY = nullptr;
 		bool * r = nullptr;
 		block * pretable = nullptr;
-		Fpre(NetIO * in_io, int in_party, int bsize = 1000) {
-			pretable = DeltaOT::preTable(40);
+		Fpre(IO * in_io, int in_party, int bsize = 1000) {
+			pretable = DeltaOT<IO>::preTable(40);
 			pool = new ThreadPool(THDS*2);
 			prps = new PRP[THDS];
 			this->party = in_party;
 			for(int i = 0; i < THDS; ++i) {
-				io[i] = new NetIO(in_io->is_server?nullptr:in_io->addr.c_str(), in_io->port+2*i+1, true);
-				io2[i] = new NetIO(in_io->is_server?nullptr:in_io->addr.c_str(), in_io->port+2*i+2, true);
-				eq[i] = new Feq(io[i], party);
+                io[i] = in_io->duplicate(2*i+1);
+                io2[i] = in_io->duplicate(2*i+2);
+				eq[i] = new Feq<IO>(io[i], party);
 			}
-			abit1[0] = new DeltaOT(io[0], pretable, 40);
-			abit2[0] = new DeltaOT(io2[0], pretable, 40);
+			abit1[0] = new DeltaOT<IO>(io[0], pretable, 40);
+			abit2[0] = new DeltaOT<IO>(io2[0], pretable, 40);
 
-			MOTExtension<NetIO> ote(io[0]);
+			MOTExtension<IO> ote(io[0]);
 			block tmp_k0[128*2], tmp_k1[128*2];
 			bool tmp_s[128*2];
 			int l = 128+40;
@@ -76,8 +80,8 @@ class Fpre {
 			}
 
 			for(int i = 1; i < THDS; ++i) {
-				abit1[i] = new DeltaOT(io[i], pretable, 40);
-				abit2[i] = new DeltaOT(io2[i], pretable, 40);
+				abit1[i] = new DeltaOT<IO>(io[i], pretable, 40);
+				abit2[i] = new DeltaOT<IO>(io2[i], pretable, 40);
 				if (party == ALICE) {
 					abit1[i]->setup_send(abit1[0]->s, abit1[0]->k0);
 					abit2[i]->setup_recv(abit2[0]->k0, abit2[0]->k1);
@@ -166,12 +170,12 @@ class Fpre {
 		void generate(block * MAC, block * KEY, bool * r, int length, int I) {
 			if (party == ALICE) {
 				if(I%2 == 1) {
-					future<void> res = pool->enqueue(abit_run, abit1[I], io[I], true, KEY, nullptr, length*3);
-					abit_run(abit2[I], io2[I], false, MAC, r, length*3);
+					future<void> res = pool->enqueue(abit_run<IO>, abit1[I], io[I], true, KEY, nullptr, length*3);
+					abit_run<IO>(abit2[I], io2[I], false, MAC, r, length*3);
 					res.get();
 				} else {
-					future<void> res = pool->enqueue(abit_run, abit1[I], io[I], true, KEY, nullptr, length*3);
-					abit_run(abit2[I], io2[I], false, MAC, r, length*3);
+					future<void> res = pool->enqueue(abit_run<IO>, abit1[I], io[I], true, KEY, nullptr, length*3);
+					abit_run<IO>(abit2[I], io2[I], false, MAC, r, length*3);
 					res.get();
 				}
 				uint8_t * data = new uint8_t[length];
@@ -181,7 +185,7 @@ class Fpre {
 					tmp[1] = xorBlocks(tmp[0], Delta);
 					tmp[2] = KEY[3*i+1];
 					tmp[3] = xorBlocks(tmp[2], Delta);
-					prps[I].H<4>(tmp, tmp, 4*i);
+					prps[I].template H<4>(tmp, tmp, 4*i);
 
 					tmp2[0] = xorBlocks(tmp[0], tmp[2]);
 					tmp2[1] = xorBlocks(tmp[1], tmp[2]);
@@ -212,12 +216,12 @@ class Fpre {
 				delete[] data;
 			} else {
 				if(I%2 == 1) {
-					future<void> res = pool->enqueue(abit_run, abit1[I], io2[I], false, MAC, r, length*3);
-					abit_run(abit2[I], io[I], true, KEY, nullptr, length*3);
+					future<void> res = pool->enqueue(abit_run<IO>, abit1[I], io2[I], false, MAC, r, length*3);
+					abit_run<IO>(abit2[I], io[I], true, KEY, nullptr, length*3);
 					res.get();
 				} else {
-					future<void> res = pool->enqueue(abit_run, abit1[I], io2[I], false, MAC, r, length*3);
-					abit_run( abit2[I], io[I], true, KEY, nullptr, length*3);
+					future<void> res = pool->enqueue(abit_run<IO>, abit1[I], io2[I], false, MAC, r, length*3);
+					abit_run<IO>( abit2[I], io[I], true, KEY, nullptr, length*3);
 					res.get();
 				}
 				uint8_t tmp;
@@ -231,11 +235,11 @@ class Fpre {
 					d[i] = r[3*i+2] != ((tmp&0x1) != (res&0x1));
 					r[3*i+2] = (!(tmp&0x1) != !(res&0x1));
 				}
-				send_bool(io[I], d, length);
+				send_bool<IO>(io[I], d, length);
 				delete[] d;
 			}
 		}
-		void check(const block * MAC, const block * KEY, const bool * r, bool checker, int length, NetIO * local_io, int I) {
+		void check(const block * MAC, const block * KEY, const bool * r, bool checker, int length, IO * local_io, int I) {
 			local_io->flush();
 			block * T = new block[length]; 
 			if(checker) {
@@ -256,7 +260,7 @@ class Fpre {
 					tmp3[0] = xorBlocks(tmp[r[3*i]], tmp2[0]);
 					tmp3[1] = xorBlocks(tmp[!r[3*i]], tmp2[1]);
 
-					prps[I].H<2>(tmp, tmp3, 2*i);
+					prps[I].template H<2>(tmp, tmp3, 2*i);
 
 					T[i] = tmp[r[3*i]];
 					tmp[1] = xorBlocks(tmp[0], tmp[1]);
@@ -278,14 +282,14 @@ class Fpre {
 					tmp2[0] = double_block(double_block(MAC[3*i+2]));
 					tmp2[1] = double_block(double_block(xorBlocks(MAC[3*i+2], MAC[3*i+1])));
 					xorBlocks_arr(V, V, tmp2, 2);
-					prps[I].H<2>(V, V, 2*i);
+					prps[I].template H<2>(V, V, 2*i);
 
 					block U;
 					local_io->recv_block(&U, 1);
 
 					tmp2[0] = KEY[3*i];
 					tmp2[1] = xorBlocks(KEY[3*i], Delta);
-					prps[I].H<2>(tmp2, tmp2, 2*i);
+					prps[I].template H<2>(tmp2, tmp2, 2*i);
 					T[i] = xorBlocks(tmp2[0], tmp2[1]);
 					T[i] = xorBlocks(T[i], V[0]);
 					T[i] = xorBlocks(T[i], V[1]);
@@ -379,7 +383,7 @@ class Fpre {
 			bool * r2 = new bool[length*3];
 			vector<future<void>> res;
 			for(int i = 0; i < THDS; ++i)
-				res.push_back(pool->enqueue(combine_merge, this, length/THDS*i, length/THDS, i, data, data2, MAC2, KEY2, r2, location));
+				res.push_back(pool->enqueue(combine_merge<IO>, this, length/THDS*i, length/THDS, i, data, data2, MAC2, KEY2, r2, location));
 			for(int i = 0; i < THDS; ++i)
 				res[i].get();
 			memcpy(MAC, MAC2, sizeof(block)*3*length);
@@ -393,7 +397,8 @@ class Fpre {
 			delete[] r2;
 		}
 };
-void combine_merge(Fpre * fpre, int start, int length, int I, bool * data, bool* data2, block * MAC2, block * KEY2, bool *r2, int * location) {
+template<typename IO>
+void combine_merge(Fpre<IO> * fpre, int start, int length, int I, bool * data, bool* data2, block * MAC2, block * KEY2, bool *r2, int * location) {
 	fpre->io[I]->flush();
 	int bucket_size = fpre->bucket_size;
 	for(int i = start; i < start+length; ++i) {
@@ -402,11 +407,11 @@ void combine_merge(Fpre * fpre, int start, int length, int I, bool * data, bool*
 		}
 	}
 	if(fpre->party == ALICE) {
-		send_bool(fpre->io[I], data + start * bucket_size, length*bucket_size);
-		recv_bool(fpre->io[I], data2 + start*bucket_size, length*bucket_size);
+		send_bool<IO>(fpre->io[I], data + start * bucket_size, length*bucket_size);
+		recv_bool<IO>(fpre->io[I], data2 + start*bucket_size, length*bucket_size);
 	} else {
-		recv_bool(fpre->io[I], data2 + start*bucket_size, length*bucket_size);
-		send_bool(fpre->io[I], data + start * bucket_size, length*bucket_size);
+		recv_bool<IO>(fpre->io[I], data2 + start*bucket_size, length*bucket_size);
+		send_bool<IO>(fpre->io[I], data + start * bucket_size, length*bucket_size);
 	}
 	for(int i = start; i < start+length; ++i) {
 		for(int j = 1; j < bucket_size; ++j) {
