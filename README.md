@@ -1,4 +1,5 @@
-# EMP-ag2pc[![Build Status](https://travis-ci.org/emp-toolkit/emp-ag2pc.svg?branch=master)](https://travis-ci.org/emp-toolkit/emp-ag2pc)
+# EMP-ag2pc
+[![Build Status](https://travis-ci.org/emp-toolkit/emp-ag2pc.svg?branch=master)](https://travis-ci.org/boltlabs-inc/emp-ag2pc)
 ## Authenticated Garbling and Efficient Maliciously Secure Two-Party Computation 
 
 More details of the protocol can be found in the [paper](https://eprint.iacr.org/2017/030).
