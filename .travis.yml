@@ -37,4 +37,3 @@ script:
   - ./run ./bin/simple_circuit 12345  
   - ./run ./bin/aes 12345  
   - ./run ./bin/sha1 12345  
-  - ./run ./bin/sha256 12345  
