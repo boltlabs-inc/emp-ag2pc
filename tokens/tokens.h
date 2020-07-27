@@ -4,6 +4,7 @@
 #ifdef __cplusplus
 extern "C" {
 #include <stdint.h>
+#include <emp-tool/io/net_callback.h>
 #endif
 
 /*
@@ -184,11 +185,6 @@ struct State_l {
   struct Balance_l max_fee;
   struct Balance_l fee_mc;
 };
-
-typedef struct Receive_return;
-
-typedef Receive_return (*cb_receive)(void*);
-typedef char* (*cb_send)(void*, int, void*);
 
 /* customer's token generation function
  *
