@@ -6,6 +6,7 @@ using namespace std;
 
 #define MERCH ALICE
 #define CUST BOB
+#define DEBUG 1
 
 using namespace emp;
 
@@ -28,6 +29,13 @@ void* get_gonetio_ptr(void *raw_stream_fd, int party) {
   return static_cast<void *>(io_ptr);
 }
 
+/* Returns a pointer to a LndNetIO ptr */
+void* get_lndnetio_ptr(void* peer, cb_send send_cb, cb_receive receive_cb, cb_duplicate duplicate_cb, int party) {
+    bool is_server = (party == MERCH) ? true : false;
+    LndNetIO *io_ptr = new LndNetIO(peer, send_cb, receive_cb, duplicate_cb, is_server);
+    return static_cast<void *>(io_ptr);
+}
+
 void* load_circuit_file(const char *path) {
   cout << "Loading circuit file for AG2PC: " << string(path) << endl;
   CircuitFile *cf_ptr = new CircuitFile(path);
@@ -35,7 +43,8 @@ void* load_circuit_file(const char *path) {
 }
 
 const string circuit_file_location = macro_xstr(EMP_CIRCUIT_PATH);
-void run(int party, NetIO* io, CircuitFile* cf,
+template<typename IO>
+void run(int party, C2PC twopc, CircuitFile* cf,
 /* CUSTOMER INPUTS */
   State_l old_state_l,
   State_l new_state_l,
@@ -79,8 +88,7 @@ void run(int party, NetIO* io, CircuitFile* cf,
   // initialize some timing stuff?
   auto t1 = clock_start();
 #endif
-  C2PC<NetIO> twopc(io, party, cf);
-  io->flush();
+  twopc.io->flush();
 #if defined(DEBUG)
   cout << "one time:\t"<<party<<"\tmicroseconds: " <<time_from(t1)<<endl;
 #endif
@@ -88,9 +96,9 @@ void run(int party, NetIO* io, CircuitFile* cf,
 #if defined(DEBUG)
   // preprocessing?
   t1 = clock_start();
-#endif  
+#endif
   twopc.function_independent();
-  io->flush();
+  twopc.io->flush();
 #if defined(DEBUG)
   cout << "inde:\t"<<party<<"\tmicroseconds: "<<time_from(t1)<<endl;
 #endif
@@ -98,9 +106,9 @@ void run(int party, NetIO* io, CircuitFile* cf,
 #if defined(DEBUG)
   // more preprocessing?
 	t1 = clock_start();
-#endif  
+#endif
 	twopc.function_dependent();
-	io->flush();
+    twopc.io->flush();
 #if defined(DEBUG)
 	cout << "dep:\t"<<party<<"\tmicroseconds: "<<time_from(t1)<<endl;
 #endif
@@ -110,7 +118,7 @@ void run(int party, NetIO* io, CircuitFile* cf,
   bool *in = new bool[in_length];
 #if defined(DEBUG)
   cout << "input size: MERCH " << cf->n1 << "\tCUST " << cf->n2<<endl;
-#endif  
+#endif
   bool *out = new bool[cf->n3];
   memset(in, false, in_length);
   int pos = 0;
@@ -139,7 +147,7 @@ void run(int party, NetIO* io, CircuitFile* cf,
         pos = translate_ecdsaPartialSig(sig2, in, pos);
 #if defined(DEBUG)
         cout << "Position merch: " << pos << endl;
-#endif        
+#endif
   }
   /*PUBLIC*/
   pos = translate_balance(epsilon_l, in, pos);
@@ -169,7 +177,7 @@ void run(int party, NetIO* io, CircuitFile* cf,
 
 #if defined(DEBUG)
 	t1 = clock_start();
-#endif  
+#endif
   // online protocol execution
 	twopc.online(in, out);
 #if defined(DEBUG)
@@ -214,6 +222,7 @@ void build_masked_tokens_cust(IOCallback io_callback,
   void *peer,
   cb_send send_cb,
   cb_receive receive_cb,
+  cb_duplicate duplicate_cb,
   void *circuit_file,
   struct Balance_l epsilon_l,
   struct RevLockCommitment_l rlc_l, // TYPISSUE: this doesn't match the docs. should be a commitment
@@ -247,20 +256,26 @@ void build_masked_tokens_cust(IOCallback io_callback,
   UnixNetIO *io1 = nullptr;
   NetIO *io2 = nullptr;
   GoNetIO *io3 = nullptr;
+  LndNetIO *io4 = nullptr;
   ConnType conn_type = conn.conn_type;
   if (io_callback != NULL) {
-    auto *io_ptr = io_callback((void *) &conn, CUST);
-    if (conn_type == UNIXNETIO) {
-        io1 = static_cast<UnixNetIO *>(io_ptr);
-    } else if (conn_type == NETIO) {
-        io2 = static_cast<NetIO *>(io_ptr);
-        io2->set_nodelay();
-    } else if (conn_type == CUSTOM) {
-        io3 = static_cast<GoNetIO *>(io_ptr);
+    if (conn_type == LNDNETIO) {
+        io4 = static_cast<LndNetIO *>(get_lndnetio_ptr(peer, send_cb, receive_cb, duplicate_cb, CUST));
+        C2PC<LndNetIO> twopc(io4, party, cf);
     } else {
-        /* custom IO connection */
-        cout << "specify a supported connection type" << endl;
-        return;
+        auto *io_ptr = io_callback((void *) &conn, CUST);
+        if (conn_type == UNIXNETIO) {
+            io1 = static_cast<UnixNetIO *>(io_ptr);
+        } else if (conn_type == NETIO) {
+            io2 = static_cast<NetIO *>(io_ptr);
+            io2->set_nodelay();
+        } else if (conn_type == CUSTOM) {
+            io3 = static_cast<GoNetIO *>(io_ptr);
+        } else {
+            /* custom IO connection */
+            cout << "specify a supported connection type" << endl;
+            return;
+        }
     }
   } else {
     cout << "did not specify a IO connection callback for customer" << endl;
@@ -290,8 +305,8 @@ void build_masked_tokens_cust(IOCallback io_callback,
     cf_ptr = static_cast<CircuitFile *>(circuit_file);
   }
 
-  // TODO: load circuit separately 
-  run(CUST, io2, cf_ptr,
+  // TODO: load circuit separately
+  run(CUST, io4, cf_ptr,
 /* CUSTOMER INPUTS */
   w_old,
   w_new,
@@ -322,7 +337,7 @@ void build_masked_tokens_cust(IOCallback io_callback,
   bal_min_merch,
   self_delay,
   merch_escrow_pub_key_l,
-  merch_dispute_key_l, 
+  merch_dispute_key_l,
   merch_payout_pub_key_l,
   merch_publickey_hash,
 /* OUTPUTS */
@@ -338,6 +353,7 @@ void build_masked_tokens_cust(IOCallback io_callback,
   if (io1 != nullptr) delete io1;
   if (io2 != nullptr) delete io2;
   if (io3 != nullptr) delete io3;
+  if (io4 != nullptr) delete io4;
   if (cf_ptr != nullptr) delete cf_ptr;
 }
 
@@ -346,6 +362,7 @@ void build_masked_tokens_merch(IOCallback io_callback,
   void *peer,
   cb_send send_cb,
   cb_receive receive_cb,
+  cb_duplicate duplicate_cb,
   void *circuit_file,
   struct Balance_l epsilon_l,
   struct RevLockCommitment_l rlc_l, // TYPISSUE: this doesn't match the docs. should be a commitment
@@ -376,20 +393,25 @@ void build_masked_tokens_merch(IOCallback io_callback,
   UnixNetIO *io1 = nullptr;
   NetIO *io2 = nullptr;
   GoNetIO *io3 = nullptr;
+  LndNetIO *io4 = nullptr;
   ConnType conn_type = conn.conn_type;
   if (io_callback != NULL) {
-    auto *io_ptr = io_callback((void *) &conn, MERCH);
-    if (conn_type == UNIXNETIO) {
-        io1 = static_cast<UnixNetIO *>(io_ptr);
-    } else if (conn_type == NETIO) {
-        io2 = static_cast<NetIO *>(io_ptr);
-        io2->set_nodelay();
-    } else if (conn_type == CUSTOM) {
-        io3 = static_cast<GoNetIO *>(io_ptr);
+    if (conn_type == LNDNETIO) {
+      io4 = static_cast<LndNetIO *>(get_lndnetio_ptr(peer, send_cb, receive_cb, duplicate_cb, MERCH));
     } else {
-        /* custom IO connection */
-        cout << "specify a supported connection type" << endl;
-        return;
+      auto *io_ptr = io_callback((void *) &conn, MERCH);
+      if (conn_type == UNIXNETIO) {
+          io1 = static_cast<UnixNetIO *>(io_ptr);
+      } else if (conn_type == NETIO) {
+          io2 = static_cast<NetIO *>(io_ptr);
+          io2->set_nodelay();
+      } else if (conn_type == CUSTOM) {
+          io3 = static_cast<GoNetIO *>(io_ptr);
+      } else {
+          /* custom IO connection */
+          cout << "specify a supported connection type" << endl;
+          return;
+      }
     }
   } else {
     cout << "did not specify a IO connection callback for merchant" << endl;
@@ -420,7 +442,7 @@ void build_masked_tokens_merch(IOCallback io_callback,
     cf_ptr = static_cast<CircuitFile *>(circuit_file);
   }
 
-  run(MERCH, io2, cf_ptr,
+  run(MERCH, io4, cf_ptr,
 /* CUSTOMER INPUTS */
   old_state_l,
   new_state_l,
@@ -452,7 +474,7 @@ void build_masked_tokens_merch(IOCallback io_callback,
   self_delay,
   merch_escrow_pub_key_l,
   merch_dispute_key_l,
-  merch_payout_pub_key_l, 
+  merch_payout_pub_key_l,
   merch_publickey_hash,
 /* OUTPUTS */
   &pt_return,
@@ -467,5 +489,6 @@ void build_masked_tokens_merch(IOCallback io_callback,
   if (io1 != nullptr) delete io1;
   if (io2 != nullptr) delete io2;
   if (io3 != nullptr) delete io3;
+  if (io4 != nullptr) delete io4;
   if (cf_ptr != nullptr) delete cf_ptr;
 }

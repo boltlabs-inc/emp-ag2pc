@@ -227,6 +227,7 @@ void build_masked_tokens_cust(
   void *peer,
   cb_send send_cb,
   cb_receive receive_cb,
+  cb_duplicate duplicate_cb,
   void *circuit_file,
 
   struct Balance_l epsilon_l,
@@ -301,6 +302,7 @@ void build_masked_tokens_merch(
   void *peer,
   cb_send send_cb,
   cb_receive receive_cb,
+  cb_duplicate duplicate_cb,
   void *circuit_file,
 
   struct Balance_l epsilon_l,

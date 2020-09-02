@@ -376,7 +376,7 @@ class Fpre {
 			}
 			delete[] ind;
 
-			bool *data = new bool[length*bucket_size];	
+			bool *data = new bool[length*bucket_size];
 			bool *data2 = new bool[length*bucket_size];
 			block * MAC2 = new block[length*3];
 			block * KEY2 = new block[length*3];

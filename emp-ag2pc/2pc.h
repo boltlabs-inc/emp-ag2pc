@@ -31,7 +31,7 @@ class C2PC { public:
 	IO* io;
 	int num_ands = 0;
 	int party, total_pre;
-	C2PC(IO* io, int party, CircuitFile * cf) {
+    C2PC(IO* io, int party, CircuitFile * cf) {
 		this->party = party;
 		this->io = io;
 		this->cf = cf;
